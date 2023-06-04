@@ -8,8 +8,12 @@ const CartProduct = require("../models/CartProduct")
 //@route - GET api/v1/cart
 // @access - Private
 exports.getCart = async function (req, res, next) {
+  const { cartId } = req.cookies
+
   try {
-    const cart = await Cart.findOne({ user: req.user.id }).populate("products")
+    const cart = await Cart.findOne({
+      _id: cartId,
+    }).populate("products")
     if (!cart) return res.status(200).json({ success: true, data: null })
 
     res.status(200).json({ success: true, data: cart })
@@ -23,61 +27,46 @@ exports.getCart = async function (req, res, next) {
 // @access - Private
 exports.AddToCart = async function (req, res, next) {
   const { productId } = req.params
-  const { cartId } = res.cookies
-
-  // no cartId
-  // no login user
-  // login user
-  // cartId is available //
+  const { cartId } = req.cookies
 
   try {
-    let cart = {}
+    let cart = null
     let product = await Product.findById(productId)
     if (!product) return next(new ErrorResponse("Product not found", 404))
     if (cartId) {
       cart = await Cart.findById(cartId)
-    } else if (req.user.id) {
-      cart = await Cart.find({ user: req.user.id })
     }
 
     if (!cart) {
-      const cartProduct = await CartProduct.create({
+      const cartProduct = await new CartProduct({
         product: productId,
         price: product.price,
       })
 
-      if (req.user.id) {
-        cart = await Cart.create({
-          products: [cartProduct._id],
-          total: product.price,
-          user: req.user.id,
-        })
-      } else {
-        cart = await Cart.create({
-          products: [cartProduct._id],
-          total: product.price,
-        })
-      }
+      cart = await Cart.create({
+        products: [cartProduct._id],
+        total: product.price,
+      })
+      cartProduct.cart = cart._id
+      await cartProduct.save()
     } else {
       let cartProduct = await CartProduct.findOne({
         product: productId,
+        cart: cartId,
       }).populate("product")
 
       if (cartProduct) {
         cartProduct = await CartProduct.findOneAndUpdate(
-          { product: productId },
+          { product: productId, cart: cartId },
           {
             $inc: { count: 1, price: product.price },
           },
           { new: true }
         ).populate("product")
 
-        console.log("cartProduct", cartProduct)
-
         //increase count and total
-        cart = await Cart.findOneAndUpdate(
-          { user: req.user.id },
-
+        cart = await Cart.findByIdAndUpdate(
+          cartId,
           {
             $inc: {
               total: product.price,
@@ -90,10 +79,11 @@ exports.AddToCart = async function (req, res, next) {
         const newCartProduct = await CartProduct.create({
           product: productId,
           price: product.price,
+          cart: cartId,
         })
         // push item to cart and increment total
-        cart = await Cart.findOneAndUpdate(
-          { user: req.user.id },
+        cart = await Cart.findByIdAndUpdate(
+          cartId,
 
           {
             $push: {
@@ -108,9 +98,10 @@ exports.AddToCart = async function (req, res, next) {
         )
       }
     }
-    res.cookies("cartId", cart._id, {
+
+    res.cookie("cartId", cart._id, {
       httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 10000, // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     })
     res.status(201).json({
       success: true,
@@ -128,9 +119,10 @@ exports.AddToCart = async function (req, res, next) {
 exports.updateCart = async function (req, res, next) {
   const { count } = req.body
   const productId = req.params.productId
+  const { cartId } = req.cookies
 
   try {
-    let cart = await Cart.findOne({ user: req.user.id })
+    let cart = await Cart.findById(cartId)
     if (!cart) return next(new ErrorResponse("Cart not found for user", 404))
     let product = await Product.findById(productId)
     if (!product) return next(new ErrorResponse("Product not found", 404))
@@ -138,14 +130,15 @@ exports.updateCart = async function (req, res, next) {
     //
     let cartProduct = await CartProduct.findOne({
       product: productId,
+      cart: cartId,
     }).populate("product")
 
-    const total = cart.total - (cartProduct.price + product.price * count)
+    const total = cart.total - product.price * count
 
     if (!cartProduct)
       return next(new ErrorResponse("Cart not found for user", 404))
     cartProduct = await CartProduct.findOneAndUpdate(
-      { product: productId },
+      { product: productId, cart: cartId },
       {
         $set: { count, price: product.price * count },
       },
@@ -154,8 +147,8 @@ exports.updateCart = async function (req, res, next) {
 
     //
 
-    cart = await Cart.findOneAndUpdate(
-      { user: req.user.id },
+    cart = await Cart.findByIdAndUpdate(
+      cartId,
 
       {
         $set: {
@@ -181,8 +174,9 @@ exports.updateCart = async function (req, res, next) {
 // @access - Private
 exports.deleteCartItem = async function (req, res, next) {
   const productId = req.params.productId
+  const { cartId } = req.cookies
   try {
-    let cart = await Cart.findOne({ user: req.user.id })
+    let cart = await Cart.findById(cartId)
     if (!cart) return next(new ErrorResponse("Cart not found for user", 404))
     let product = await Product.findById(productId)
     if (!product) return next(new ErrorResponse("Product not found", 404))
@@ -191,14 +185,15 @@ exports.deleteCartItem = async function (req, res, next) {
 
     let cartProduct = await CartProduct.findOne({
       product: productId,
+      cart: cartId,
     }).populate("product")
     if (!cartProduct)
       return next(new ErrorResponse("Product does not exist in cart", 404))
 
     const total = cart.total - cartProduct.price
 
-    // await cartProduct.deleteOne()
-    await CartProduct.findByIdAndDelete(cartProduct.id)
+    await cartProduct.deleteOne()
+    // await CartProduct.findByIdAndDelete(cartProduct.id)
 
     cart = await Cart.findOneAndUpdate(
       { user: req.user.id },
@@ -232,16 +227,20 @@ exports.deleteCartItem = async function (req, res, next) {
 }
 
 //@desc - Clear Cart
-//@route - DELETE api/v1/cart/:cartId/clear
+//@route - DELETE api/v1/cart/
 // @access - Private
 exports.clearCart = async function (req, res, next) {
+  const { cartId } = req.cookies
   try {
-    const cart = await Cart.findByIdAndDelete(req.params.cartId)
-    if (!cart) {
-      if (!cart) return next(new ErrorResponse("No cart found", 404))
-    }
-    // work this deleteMany, it should delete based on the cart or user not all the cart products in the databse
-    await CartProduct.deleteMany()
+    let cart = await Cart.findById(cartId)
+    if (!cart) return next(new ErrorResponse("No cart found", 404))
+    // delete cart products associated with cart
+    await CartProduct.deleteMany({ cart: cartId })
+    // delete cart
+    await Cart.findByIdAndDelete(cartId)
+
+    // clear cart from cookie
+    res.clearCookie("cartId")
     res
       .status(200)
       .json({ success: true, message: "Cart deleted successfully", data: {} })

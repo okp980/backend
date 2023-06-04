@@ -16,6 +16,11 @@ const cartProductSchema = Schema(
       type: Number,
       required: true,
     },
+    cart: {
+      type: Schema.Types.ObjectId,
+      ref: "Cart",
+      required: true,
+    },
   },
   {
     toJSON: {

@@ -11,10 +11,9 @@ const {
 
 const router = express.Router()
 
-router.route("/").get(protect, getCart).post()
-router.route("/:productId").post(protect, AddToCart).put(protect, updateCart)
+router.route("/").get(getCart).delete(clearCart)
+router.route("/:productId").post(AddToCart).put(protect, updateCart)
 
-router.route("/:productId/item").delete(protect, deleteCartItem)
-router.route("/:cartId/clear").delete(protect, clearCart)
+router.route("/:productId/item").delete(deleteCartItem)
 
 module.exports = router
