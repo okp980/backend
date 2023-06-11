@@ -3,6 +3,7 @@ const ErrorResponse = require("../util/ErrorResponse")
 const sendEmail = require("../util/nodemailer")
 const crypto = require("crypto")
 const bcrypt = require("bcrypt")
+const Cart = require("../models/Cart")
 
 //@desc - register users
 //@route - POST api/v1/auth/register
@@ -21,9 +22,20 @@ exports.register = async function (req, res, next) {
 //@route - POST api/v1/auth/login
 // @access - Public
 exports.login = async function (req, res, next) {
+  const { cartId } = req.cookies
   try {
     const user = await User.findCredentials(req.body.email, req.body.password)
     const token = user.generateToken()
+    // register a cart to a user on login
+    if (cartId) {
+      const cart = await Cart.findById(cartId)
+      if (!cart) {
+        // clear cart from cookkie if not found
+        res.clearCookie("cartId")
+      }
+      cart.user = user._id
+      await cart.save()
+    }
     res.status(200).json({ success: true, message: "Login successful", token })
   } catch (error) {
     next(error)

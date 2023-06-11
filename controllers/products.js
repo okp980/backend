@@ -24,7 +24,6 @@ exports.addProduct = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   // const { colors, sizes, sortBy, select, limit, page } = req.query
 
-  // let queury = {}
   // if (colors) {
   //   const colorsArr = colors.split(",")
   //   queury["meta.colors"] = { $in: colorsArr }
@@ -68,8 +67,15 @@ exports.getProducts = async (req, res, next) => {
   //   queryFn = queryFn.sort("-createdAt")
   // }
 
+  console.log(req.query)
+  let query
+
+  let queryStr = JSON.stringify(req.query)
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`)
+  query = Product.find(JSON.parse(queryStr))
+
   try {
-    const products = await Product.find().select("+sold")
+    const products = await query
 
     res.status(200).json({
       success: true,
@@ -86,10 +92,7 @@ exports.getProducts = async (req, res, next) => {
 //@access - Public
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      "product",
-      "name"
-    )
+    const product = await Product.findById(req.params.id)
     if (!product) {
       return new ErrorResponse("Product not found", 404)
     }

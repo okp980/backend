@@ -38,13 +38,11 @@ const productSchema = new Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      select: false,
     },
     sub_category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SubCategory",
       required: [true, "Category of product is required"],
-      select: false,
     },
     quantity: {
       type: Number,

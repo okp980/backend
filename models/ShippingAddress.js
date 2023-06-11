@@ -20,6 +20,10 @@ const shipppingAdressSchema = Schema(
         "Please fill a valid email address",
       ],
     },
+    phoneNumber: {
+      type: String,
+      required: [true, "Phone Number is required"],
+    },
     address: {
       type: String,
       required: [true, "Address is required"],
@@ -36,6 +40,10 @@ const shipppingAdressSchema = Schema(
       type: String,
       required: [true, "Country is required"],
     },
+    default: {
+      type: Boolean,
+      default: false,
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -43,8 +51,18 @@ const shipppingAdressSchema = Schema(
     },
   },
   {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
     timestamps: true,
   }
 )
+
+shipppingAdressSchema.virtual("fullName").get(function () {
+  return this.firstName + " " + this.lastName
+})
 
 module.exports = model("ShippingAddress", shipppingAdressSchema)

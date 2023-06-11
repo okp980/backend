@@ -11,9 +11,14 @@ exports.getCart = async function (req, res, next) {
   const { cartId } = req.cookies
 
   try {
-    const cart = await Cart.findOne({
-      _id: cartId,
-    }).populate("products")
+    const cart = await Cart.findById(cartId).populate({
+      path: "products",
+      populate: {
+        path: "product",
+        select: "name image sub_category",
+        populate: { path: "sub_category", select: "name" },
+      },
+    })
     if (!cart) return res.status(200).json({ success: true, data: null })
 
     res.status(200).json({ success: true, data: cart })
@@ -23,12 +28,14 @@ exports.getCart = async function (req, res, next) {
 }
 
 //@desc - add to Cart
-//@route - POST api/v1/cart/:productId
+//@route - POST api/v1/cart/
 // @access - Private
 exports.AddToCart = async function (req, res, next) {
-  const { productId } = req.params
+  const { productId } = req.body
   const { cartId } = req.cookies
 
+  console.log("cookies", req.cookies)
+  console.log("body", req.body)
   try {
     let cart = null
     let product = await Product.findById(productId)
@@ -170,9 +177,9 @@ exports.updateCart = async function (req, res, next) {
 }
 
 //@desc - Delete Cart Item
-//@route - DELETE api/v1/cart/:productId/item
+//@route - PUT api/v1/cart/:productId/item
 // @access - Private
-exports.deleteCartItem = async function (req, res, next) {
+exports.updateCartItem = async function (req, res, next) {
   const productId = req.params.productId
   const { cartId } = req.cookies
   try {

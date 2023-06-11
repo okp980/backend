@@ -37,7 +37,15 @@ const UserSchema = new Schema(
       default: "user",
     },
   },
-  { timestamps: true }
+  {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
+    timestamps: true,
+  }
 )
 
 UserSchema.methods.generateToken = function () {
