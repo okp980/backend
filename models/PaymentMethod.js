@@ -7,9 +7,16 @@ const paymentMethodSchema = Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
   },
   {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
     timestamps: true,
   }
 )

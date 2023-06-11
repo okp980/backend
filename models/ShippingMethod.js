@@ -21,6 +21,12 @@ const shippingMethodSchema = Schema(
     },
   },
   {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
     timestamps: true,
   }
 )
