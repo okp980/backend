@@ -20,6 +20,7 @@ router
   .route("/")
   .get(getCategory)
   .post(protect, authorize("admin"), ImageUpload, addCategory)
+
 router
   .route("/:id")
   .put(protect, authorize("admin"), updateCategory)

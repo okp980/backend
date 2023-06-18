@@ -87,6 +87,51 @@ exports.getProducts = async (req, res, next) => {
     next(error)
   }
 }
+
+//@desc -  get New Arrival products
+//@route - GET /api/v1/products/new-arrival
+//@access - Public
+exports.getNewArrivalProducts = async (req, res, next) => {
+  try {
+    const newProducts = await Product.find()
+    res
+      .status(200)
+      .json({ success: true, count: newProducts.length, data: newProducts })
+  } catch (error) {
+    next(error)
+  }
+}
+//@desc -  get trending products
+//@route - GET /api/v1/products/trending
+//@access - Public
+exports.getTrendingProducts = async (req, res, next) => {
+  try {
+    const trendingProducts = await Product.find()
+    res.status(200).json({
+      success: true,
+      count: trendingProducts.length,
+      data: trendingProducts,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+//@desc -  get recommended products
+//@route - GET /api/v1/products/recommended
+//@access - Public
+exports.getRecommendedProducts = async (req, res, next) => {
+  try {
+    const recommendedProducts = await Product.find()
+    res.status(200).json({
+      success: true,
+      count: recommendedProducts.length,
+      data: recommendedProducts,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 //@desc -  get all products
 //@route - GET /api/v1/products/:id
 //@access - Public

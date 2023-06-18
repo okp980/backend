@@ -6,6 +6,9 @@ const {
   deleteProduct,
   getProduct,
   updateProductImage,
+  getNewArrivalProducts,
+  getTrendingProducts,
+  getRecommendedProducts,
 } = require("../controllers/products")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
@@ -15,6 +18,9 @@ router
   .route("/")
   .get(getProducts)
   .post(protect, authorize("admin"), ImageUpload, addProduct)
+router.route("/new-arrival").get(getNewArrivalProducts)
+router.route("/trending").get(getTrendingProducts)
+router.route("/recommended").get(getRecommendedProducts)
 router
   .route("/:id")
   .get(getProduct)
