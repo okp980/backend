@@ -1,5 +1,7 @@
 const Cart = require("../models/Cart")
 const Order = require("../models/Order")
+const ShippingAddress = require("../models/ShippingAddress")
+const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
 
 //@desc - Get all Orders
@@ -45,24 +47,31 @@ exports.getSingleOrder = async (req, res, next) => {
 //@route - POST api/v1/orders
 // @access - Private
 exports.createOrder = async (req, res, next) => {
-  const { shippingAddress, shippingMethod } = req.body
+  const { shippingAddressId, shippingMethodId } = req.body
   try {
     const cart = await Cart.findOne({ user: req.user.id })
     if (!cart) return next(new ErrorResponse("No Cart was found for user", 404))
 
-    const totalAmount = cart?.totalAfterDiscount
+    const shippingMethod = await ShippingMethod.findById(shippingMethodId)
+    if (!shippingMethod)
+      return next(new ErrorResponse("Shipping method not found", 404))
+
+    let totalAmount = cart?.totalAfterDiscount
       ? cart?.totalAfterDiscount
       : cart.total
+    // Add shipping method charge to total
+    totalAmount += shippingMethod.charge
     const newOrder = {
       user: req.user.id,
       products: cart.products,
       totalAmount,
-      shippingAddress,
-      shippingMethod,
+      shippingAddress: shippingAddressId,
+      shippingMethod: shippingMethodId,
     }
     const order = await Order.create(newOrder)
     await cart.deleteOne()
-
+    // clear cart stored in user cookie
+    res.clearCookie("cartId")
     res.status(201).json({ success: true, data: order })
   } catch (error) {
     next(error)

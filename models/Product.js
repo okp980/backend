@@ -103,8 +103,8 @@ const productSchema = new Schema(
   }
 )
 
-productSchema.pre("save", function (next) {
-  const subCat = this.model("SubCategory").findById(this.sub_category)
+productSchema.pre("save", async function (next) {
+  const subCat = await this.model("SubCategory").findById(this.sub_category)
   this.category = subCat.category
   this.slug = slugify(this.name, { lower: true })
   next()

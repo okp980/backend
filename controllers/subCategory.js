@@ -42,6 +42,21 @@ exports.getSubcategory = async (req, res, next) => {
   }
 }
 
+//@desc -  get all Products in SubCategory
+//@route - GET /api/v1/subcategories/:id/products
+//@access - Public
+exports.getSubCategoryProducts = async (req, res, next) => {
+  try {
+    const id = req.params.id
+    const products = await Product.find({ sub_category: id })
+    res
+      .status(200)
+      .json({ success: true, count: products.length, data: products })
+  } catch (error) {
+    next(error)
+  }
+}
+
 //@desc -  update single SubCategory
 //@route - PUT /api/v1/subcategories/:id
 //@access - Private

@@ -5,6 +5,7 @@ const {
   updateCategory,
   deleteCategory,
   updateCategoryImage,
+  getCategoryProducts,
 } = require("../controllers/category")
 const subcategoryRouter = require("./subcategory")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
@@ -23,6 +24,7 @@ router
   .route("/:id")
   .put(protect, authorize("admin"), updateCategory)
   .delete(protect, authorize("admin"), deleteCategory)
+router.route("/:id/products").get(getCategoryProducts)
 router
   .route("/:id/image")
   .put(protect, authorize("admin"), ImageUpload, updateCategoryImage)

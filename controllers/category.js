@@ -37,6 +37,20 @@ exports.getCategory = async (req, res, next) => {
     next(error)
   }
 }
+//@desc -  get all Products in Category
+//@route - GET /api/v1/categories/:id/products
+//@access - Public
+exports.getCategoryProducts = async (req, res, next) => {
+  try {
+    const id = req.params.id
+    const products = await Product.find({ category: id })
+    res
+      .status(200)
+      .json({ success: true, count: products.length, data: products })
+  } catch (error) {
+    next(error)
+  }
+}
 
 //@desc -  update single Category
 //@route - PUT /api/v1/categories/:id
