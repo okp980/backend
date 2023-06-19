@@ -7,6 +7,12 @@ const tagsSchema = Schema(
     name: String,
   },
   {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
     timestamps: true,
   }
 )

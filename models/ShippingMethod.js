@@ -13,6 +13,10 @@ const shippingMethodSchema = Schema(
       required: [true, "Description is required"],
       maxLength: [50, "Maximum length is 50 characters"],
     },
+    duration: {
+      type: Number,
+      required: [true, "Duration is required"],
+    },
 
     charge: {
       type: Number,

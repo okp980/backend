@@ -1,3 +1,6 @@
+const { addDays, format } = require("date-fns")
+
+const Product = require("../models/Product")
 const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
 
@@ -29,8 +32,40 @@ exports.getSingleShippingMethod = async function (req, res, next) {
   }
 }
 
+//@desc - Get Single ShippingMethod
+//@route - GET api/v1/products/:productId/shipping-methods
+// @access - Public
+exports.getProductShippingMethod = async function (req, res, next) {
+  try {
+    const product = await Product.findById(req.params.productId)
+    if (!product) return next(new ErrorResponse("Product not found", 404))
+    const methods = await ShippingMethod.find()
+
+    const getDeliveryTime = (duration) => {
+      const currentDate = new Date()
+      const newDate = addDays(currentDate, duration)
+      return `Estimated delivery time from ${format(
+        currentDate,
+        "dd MMM yyyy"
+      )} to ${format(newDate, "dd MMM yyyy")}`
+    }
+
+    const productMethods = methods.map((method) => ({
+      id: method.id,
+      title: method.title,
+      description: method.description,
+      duration: getDeliveryTime(method.duration),
+      charge: method.charge * product.weight,
+    }))
+
+    res.status(200).json({ success: true, data: productMethods })
+  } catch (error) {
+    next(error)
+  }
+}
+
 //@desc - Create ShippingMethod
-//@route - POST api/v1/shipping-method
+//@route - POST api/v1/shipping-methods
 // @access - Private
 exports.createShippingMethod = async function (req, res, next) {
   try {
@@ -42,7 +77,7 @@ exports.createShippingMethod = async function (req, res, next) {
 }
 
 //@desc - Update ShippingMethod
-//@route - PUT api/v1/shipping-method/:methodId
+//@route - PUT api/v1/shipping-methods/:methodId
 // @access - Private
 exports.updateShippingMethod = async function (req, res, next) {
   try {
@@ -67,7 +102,7 @@ exports.updateShippingMethod = async function (req, res, next) {
 }
 
 //@desc - Delete ShippingMethod
-//@route - DELETE api/v1/shipping-method/:methodId
+//@route - DELETE api/v1/shipping-methods/:methodId
 // @access - Private
 exports.deleteShippingMethod = async function (req, res, next) {
   try {

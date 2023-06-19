@@ -16,6 +16,12 @@ const categorySchema = Schema(
     image: String,
   },
   {
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
     timestamps: true,
   }
 )

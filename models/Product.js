@@ -64,27 +64,22 @@ const productSchema = new Schema(
     ],
     brand: {
       type: String,
-      enum: ["aplle", "samsung"],
+      enum: ["apple", "samsung"],
     },
-    colors: {
+    color: {
       type: String,
       enum: ["red", "orange", "green"],
     },
-    meta: {
-      sizes: [String],
-      weight: {
-        value: Number,
-        unit: {
-          type: String,
-          default: "kg",
-          enum: ["kg"],
-        },
-      },
-      dimension: {
-        height: Number,
-        width: Number,
-      },
+
+    size: {
+      type: String,
+      enum: ["xs", "l"],
     },
+    weight: {
+      type: Number,
+      required: true,
+    },
+
     isFeatured: Boolean,
     inStock: {
       type: Boolean,

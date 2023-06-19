@@ -17,8 +17,8 @@ router
   .post(protect, authorize("admin"), createShippingMethod)
 router
   .route("/:methodId")
-  .get(protect, getSingleShippingMethod)
-  .put(protect, updateShippingMethod)
-  .delete(protect, deleteShippingMethod)
+  .get(protect, authorize("admin"), getSingleShippingMethod)
+  .put(protect, authorize("admin"), updateShippingMethod)
+  .delete(protect, authorize("admin"), deleteShippingMethod)
 
 module.exports = router

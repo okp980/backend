@@ -12,6 +12,7 @@ const {
 } = require("../controllers/products")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
+const { getProductShippingMethod } = require("../controllers/shippingMethod")
 const router = express.Router()
 
 router
@@ -26,6 +27,7 @@ router
   .get(getProduct)
   .put(protect, authorize("admin"), updateProduct)
   .delete(protect, authorize("admin"), deleteProduct)
+router.route("/:productId/shipping-methods").get(getProductShippingMethod)
 router
   .route("/:id/image")
   .put(protect, authorize("admin"), ImageUpload, updateProductImage)
