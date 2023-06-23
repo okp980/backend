@@ -34,14 +34,12 @@ exports.AddToCart = async function (req, res, next) {
   const { productId } = req.body
   const { cartId } = req.cookies
 
-  console.log("cookies", req.cookies)
-  console.log("body", req.body)
   try {
     let cart = null
     let product = await Product.findById(productId)
     if (!product) return next(new ErrorResponse("Product not found", 404))
     if (cartId) {
-      cart = await Cart.findById(cartId)
+      cart = await Cart.findById(cartId).populate("products")
     }
 
     if (!cart) {
@@ -120,7 +118,7 @@ exports.AddToCart = async function (req, res, next) {
   }
 }
 
-//@desc - Update Cart Count
+//@desc - Update Cart Item Count
 //@route - PUT api/v1/cart/:cartId/cartProducts/:cartProductId
 // @access - Private
 exports.updateCartCount = async function (req, res, next) {
