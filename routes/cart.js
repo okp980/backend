@@ -4,15 +4,15 @@ const { protect } = require("../middleware/auth")
 const {
   getCart,
   AddToCart,
-  updateCart,
   updateCartItem,
   clearCart,
+  updateCartCount,
 } = require("../controllers/cart")
 
 const router = express.Router()
 
 router.route("/").get(getCart).delete(clearCart).post(AddToCart)
-router.route("/:productId").put(updateCart)
+router.route("/:cartId/cartProducts/:cartProductId").put(updateCartCount)
 
 router.route("/:productId/item").put(updateCartItem)
 

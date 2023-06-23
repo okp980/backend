@@ -120,55 +120,53 @@ exports.AddToCart = async function (req, res, next) {
   }
 }
 
-//@desc - Update Cart
-//@route - PUT api/v1/cart/:productId
+//@desc - Update Cart Count
+//@route - PUT api/v1/cart/:cartId/cartProducts/:cartProductId
 // @access - Private
-exports.updateCart = async function (req, res, next) {
+exports.updateCartCount = async function (req, res, next) {
   const { count } = req.body
-  const productId = req.params.productId
-  const { cartId } = req.cookies
+  const cartProductId = req.params.cartProductId
+  const cartId = req.params.cartId
 
   try {
-    let cart = await Cart.findById(cartId)
-    if (!cart) return next(new ErrorResponse("Cart not found for user", 404))
-    let product = await Product.findById(productId)
-    if (!product) return next(new ErrorResponse("Product not found", 404))
-
-    //
-    let cartProduct = await CartProduct.findOne({
-      product: productId,
-      cart: cartId,
-    }).populate("product")
-
-    const total = cart.total - product.price * count
-
+    let cartProduct = await CartProduct.findById(cartProductId).populate(
+      "product"
+    )
     if (!cartProduct)
-      return next(new ErrorResponse("Cart not found for user", 404))
-    cartProduct = await CartProduct.findOneAndUpdate(
-      { product: productId, cart: cartId },
-      {
-        $set: { count, price: product.price * count },
-      },
-      { new: true }
-    ).populate("product")
+      return next(new ErrorResponse("Product does not exist in Cart", 404))
+    const newPrice = cartProduct.product.price * Number(count)
+    if (count === 0) {
+      await cartProduct.deleteOne()
+      cartProduct = null
+    } else {
+      await cartProduct.updateOne({ count, price: newPrice })
+      await cartProduct.save()
+    }
 
-    //
-
-    cart = await Cart.findByIdAndUpdate(
-      cartId,
-
-      {
-        $set: {
-          total: total,
-        },
-      },
-
-      { new: true }
-    ).populate("products")
+    let cart = await Cart.findById(cartId).populate("products")
+    if (!cart) return next(new ErrorResponse("No Cart Found", 404))
+    if (cart.products.length === 0) {
+      await Cart.findByIdAndDelete(cartId, { new: true })
+      cart = null // come back to this, find more appropriate way
+    } else {
+      const newTotal = cart.products.reduce(
+        (prev, curr) => prev + curr.price,
+        0
+      )
+      cart = await Cart.findByIdAndUpdate(
+        cartId,
+        { total: newTotal },
+        { new: true }
+      ).populate("products")
+    }
 
     res.status(200).json({
       success: true,
-      message: "Cart updated successfully",
+      message: !cartProduct
+        ? "Product deleted from Cart"
+        : !cart
+        ? "Cart is Empty"
+        : "Cart updated successfully",
       data: cart,
     })
   } catch (error) {
