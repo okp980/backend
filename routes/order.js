@@ -10,14 +10,18 @@ const {
   deleteOrder,
 } = require("../controllers/order")
 const { makepayment, verifyPayment } = require("../controllers/payment")
+const advancedResults = require("../middleware/advancedResults")
+const Order = require("../models/Order")
 
 const router = express.Router()
 
 router
   .route("/")
-  .get(protect, authorize("admin"), getOrders)
+  .get(protect, authorize("admin"), advancedResults(Order), getOrders)
   .post(protect, createOrder)
-router.route("/user").get(protect, getUserOrders)
+router
+  .route("/user")
+  .get(protect, advancedResults(Order, null, true), getUserOrders)
 router
   .route("/:orderId")
   .get(protect, getSingleOrder)
