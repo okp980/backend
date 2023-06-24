@@ -22,7 +22,7 @@ exports.getOrders = async (req, res, next) => {
 exports.getUserOrders = async (req, res, next) => {
   try {
     const orders = await Order.find({ user: req.user.id })
-    res.status(200).json({ success: true, data: orders })
+    res.status(200).json({ success: true, count: orders.length, data: orders })
   } catch (error) {
     next(error)
   }

@@ -158,6 +158,10 @@ exports.updateCartCount = async function (req, res, next) {
       ).populate("products")
     }
 
+    if (!cart) {
+      // clear cart from cookie
+      res.clearCookie("cartId")
+    }
     res.status(200).json({
       success: true,
       message: !cartProduct
@@ -165,63 +169,6 @@ exports.updateCartCount = async function (req, res, next) {
         : !cart
         ? "Cart is Empty"
         : "Cart updated successfully",
-      data: cart,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-//@desc - Delete Cart Item
-//@route - PUT api/v1/cart/:productId/item
-// @access - Private
-exports.updateCartItem = async function (req, res, next) {
-  const productId = req.params.productId
-  const { cartId } = req.cookies
-  try {
-    let cart = await Cart.findById(cartId)
-    if (!cart) return next(new ErrorResponse("Cart not found for user", 404))
-    let product = await Product.findById(productId)
-    if (!product) return next(new ErrorResponse("Product not found", 404))
-
-    //
-
-    let cartProduct = await CartProduct.findOne({
-      product: productId,
-      cart: cartId,
-    }).populate("product")
-    if (!cartProduct)
-      return next(new ErrorResponse("Product does not exist in cart", 404))
-
-    const total = cart.total - cartProduct.price
-
-    await cartProduct.deleteOne()
-    // await CartProduct.findByIdAndDelete(cartProduct.id)
-
-    cart = await Cart.findOneAndUpdate(
-      { user: req.user.id },
-
-      {
-        $set: {
-          total: total,
-        },
-      },
-
-      { new: true }
-    ).populate("products")
-
-    console.log("total", cart.total)
-    console.log("products", cart.products)
-
-    if (cart.total === 0 && cart.products.length === 0) {
-      cart = await cart.deleteOne()
-    }
-
-    //
-
-    res.status(200).json({
-      success: true,
-      message: "Cart Item deleted successfully",
       data: cart,
     })
   } catch (error) {

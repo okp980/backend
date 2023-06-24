@@ -13,11 +13,13 @@ const {
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
 const { getProductShippingMethod } = require("../controllers/shippingMethod")
+const Product = require("../models/Product")
+const advancedResults = require("../middleware/advancedResults")
 const router = express.Router()
 
 router
   .route("/")
-  .get(getProducts)
+  .get(advancedResults(Product), getProducts)
   .post(protect, authorize("admin"), ImageUpload, addProduct)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router.route("/trending").get(getTrendingProducts)
