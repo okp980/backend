@@ -1,5 +1,6 @@
 const Cart = require("../models/Cart")
 const Order = require("../models/Order")
+const OrderItem = require("../models/OrderItem")
 const ShippingAddress = require("../models/ShippingAddress")
 const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
@@ -59,14 +60,34 @@ exports.createOrder = async (req, res, next) => {
       : cart.total
     // Add shipping method charge to total
     totalAmount += shippingMethod.charge
+
     const newOrder = {
       user: req.user.id,
-      products: cart.products,
       totalAmount,
       shippingAddress: shippingAddressId,
       shippingMethod: shippingMethodId,
     }
-    const order = await Order.create(newOrder)
+
+    // order to get id to attach to order item
+    const order = await new Order(newOrder)
+
+    // create order item for each cart product
+    const products = Promise.all(
+      cart.products.map(async (item) => {
+        const orderItem = await OrderItem.create({
+          product: item.product,
+          quantity: item.count,
+          price: item.price,
+          order: order.id,
+        })
+        return orderItem.id
+      })
+    )
+
+    order.items = products
+
+    await order.save()
+
     await cart.deleteOne()
     // clear cart stored in user cookie
     res.clearCookie("cartId")
@@ -102,6 +123,11 @@ exports.updateOrdersStatus = async (req, res, next) => {
 exports.deleteOrder = async (req, res, next) => {
   const { status } = req.body
   try {
+    const order = await Order.findById(req.params.orderId)
+    if (!order) {
+      return next(new ErrorResponse("Order not found", 404))
+    }
+    await OrderItem.deleteMany({ order: req.params.orderId })
     await Order.findByIdAndDelete(req.params.orderId)
 
     res.status(200).json({ success: true, data: {} })

@@ -21,10 +21,10 @@ const orderSchema = Schema(
       ref: "User",
       required: true,
     },
-    products: [
+    items: [
       {
         type: Schema.Types.ObjectId,
-        ref: "CartProduct",
+        ref: "OrderItem",
         required: true,
       },
     ],
