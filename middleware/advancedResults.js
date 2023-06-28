@@ -27,7 +27,7 @@ const advancedResults =
       if (useUser) {
         query = model.find({ user: req.user.id, ...queryStr })
       } else {
-        query = model.find(queryStr)
+        query = model.find(queryStr).populate(populate)
       }
 
       // select field
@@ -70,9 +70,9 @@ const advancedResults =
       }
 
       // populate field
-      if (populate) {
-        query = query.populate(populate)
-      }
+    //   if (populate) {
+    //     query = query.populate(populate)
+    //   }
 
       // execute query
       const result = await query

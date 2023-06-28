@@ -21,7 +21,87 @@ exports.getOrders = async (req, res, next) => {
 // @access - Private
 exports.getUserOrders = async (req, res, next) => {
   try {
-    res.status(200).json(res.advancedResults)
+    let query
+
+    let queryStr = JSON.stringify(req.query)
+    queryStr = queryStr.replace(
+      /\b(gt|gte|lt|lte|in)\b/g,
+      (match) => `$${match}`
+    )
+
+    // parsed query
+
+    queryStr = JSON.parse(queryStr)
+
+    // fields to remove
+    const removeFields = ["select", "sort", "page", "limit"]
+
+    removeFields.forEach((item) => {
+      if (queryStr[item]) {
+        delete queryStr[item]
+      }
+    })
+
+    query = Order.find({ user: req.user.id, ...queryStr })
+      .populate({
+        path: "items",
+        populate: { path: "product", select: "name price image" },
+      })
+      .populate("shippingMethod", "title charge")
+      .populate({
+        path: "payment",
+        populate: { path: "paymentMethod", select: "name" },
+        select: "paymentMethod",
+      })
+
+    // select field
+    if (req.query.select) {
+      const fields = req.query.select.split(",").join(" ")
+      query.select(fields)
+    }
+
+    // sort by
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ")
+      query.sort(sortBy)
+    } else {
+      query.sort("-createdAt")
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1
+    const limit = parseInt(req.query.limit, 10) || 5
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+    const total = await Order.countDocuments()
+
+    query = query.skip(startIndex).limit(limit)
+
+    const pagination = { current: page, limit }
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      }
+    }
+
+    if (startIndex > 0) {
+      pagination.previous = {
+        page: page - 1,
+        limit,
+      }
+    }
+
+    const result = await query
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+
+      pagination,
+      data: result,
+    })
   } catch (error) {
     next(error)
   }
@@ -32,7 +112,18 @@ exports.getUserOrders = async (req, res, next) => {
 // @access - Private
 exports.getSingleOrder = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.orderId).populate("payment")
+    const order = await Order.findById(req.params.orderId)
+      .populate({
+        path: "items",
+        populate: { path: "product", select: "name price image" },
+      })
+      .populate("shippingMethod shippingAddress")
+      .populate({
+        path: "payment",
+        populate: { path: "paymentMethod", select: "name" },
+        select: "paymentMethod",
+      })
+
     if (!order) {
       return next(new ErrorResponse("Order not found", 404))
     }
@@ -48,7 +139,7 @@ exports.getSingleOrder = async (req, res, next) => {
 exports.createOrder = async (req, res, next) => {
   const { shippingAddressId, shippingMethodId } = req.body
   try {
-    const cart = await Cart.findOne({ user: req.user.id })
+    const cart = await Cart.findOne({ user: req.user.id }).populate("products")
     if (!cart) return next(new ErrorResponse("No Cart was found for user", 404))
 
     const shippingMethod = await ShippingMethod.findById(shippingMethodId)
@@ -72,7 +163,7 @@ exports.createOrder = async (req, res, next) => {
     const order = await new Order(newOrder)
 
     // create order item for each cart product
-    const products = Promise.all(
+    const products = await Promise.all(
       cart.products.map(async (item) => {
         const orderItem = await OrderItem.create({
           product: item.product,

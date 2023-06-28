@@ -17,7 +17,7 @@ const makepayment = async (req, res, next) => {
     const { orderId } = req.params
 
     const order = await Order.findById(orderId)
-      .populate({ path: "products", populate: { path: "product" } })
+      .populate({ path: "items", populate: { path: "product" } })
       .populate("shippingAddress")
 
     if (!order) {
@@ -29,7 +29,7 @@ const makepayment = async (req, res, next) => {
 
     // check if the quatity of the product available is not sufficient for the order
     // can occur if the order was created for long period of time and order users have purchased the product
-    const productsUnavailable = order.products.filter(
+    const productsUnavailable = order.items.filter(
       (prd) => prd.product.quantity < prd.count
     )
     if (productsUnavailable.length > 0) {

@@ -107,12 +107,7 @@ exports.getTrendingProducts = async (req, res, next) => {
 //@access - Public
 exports.getRecommendedProducts = async (req, res, next) => {
   try {
-    const recommendedProducts = await Product.find()
-    res.status(200).json({
-      success: true,
-      count: recommendedProducts.length,
-      data: recommendedProducts,
-    })
+    res.status(200).json(res.advancedResults)
   } catch (error) {
     next(error)
   }

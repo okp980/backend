@@ -23,7 +23,9 @@ router
   .post(protect, authorize("admin"), ImageUpload, addProduct)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router.route("/trending").get(getTrendingProducts)
-router.route("/recommended").get(getRecommendedProducts)
+router
+  .route("/recommended")
+  .get(advancedResults(Product), getRecommendedProducts)
 router
   .route("/:id")
   .get(getProduct)

@@ -19,9 +19,8 @@ router
   .route("/")
   .get(protect, authorize("admin"), advancedResults(Order), getOrders)
   .post(protect, createOrder)
-router
-  .route("/user")
-  .get(protect, advancedResults(Order, null, true), getUserOrders)
+router.route("/user").get(protect, getUserOrders)
+
 router
   .route("/:orderId")
   .get(protect, getSingleOrder)
