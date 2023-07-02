@@ -99,8 +99,18 @@ exports.getSingleShippingAddress = async function (req, res, next) {
 // @access - Private
 exports.createShippingAddress = async function (req, res, next) {
   try {
+    const allUserAddresses = await ShippingAddress.find({ user: req.user.id })
+    if (allUserAddresses.length > 0) {
+      await Promise.all(
+        allUserAddresses.map(
+          async (add) =>
+            await ShippingAddress.findByIdAndUpdate(add.id, { default: false })
+        )
+      )
+    }
     const address = await ShippingAddress.create({
       ...req.body,
+      default: true,
       user: req.user.id,
     })
     res.status(201).json({ success: true, data: address })
