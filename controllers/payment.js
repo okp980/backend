@@ -47,7 +47,7 @@ const makepayment = async (req, res, next) => {
     const options = {
       amount: amount * 100,
       email,
-      callback_url: `http://localhost:4000/api/v1/orders/${orderId}/verify`,
+      callback_url: `${req.protocol}://${req.hostname}${req.originalUrl}${orderId}/verify`,
       currency: "NGN",
     }
 
