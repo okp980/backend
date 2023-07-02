@@ -138,10 +138,12 @@ exports.getSingleOrder = async (req, res, next) => {
 // @access - Private
 exports.createOrder = async (req, res, next) => {
   const { shippingAddressId, shippingMethodId } = req.body
+  const { cartId } = req.cookies
   try {
-    const cart = await Cart.findOne({ user: req.user.id }).populate("products")
-    if (!cart) return next(new ErrorResponse("No Cart was found for user", 404))
-
+    const cart = await Cart.findById(cartId).populate("products")
+    if (!cart) return next(new ErrorResponse("No Cart was found", 404))
+    cart.user = req.user.id
+    await cart.save()
     const shippingMethod = await ShippingMethod.findById(shippingMethodId)
     if (!shippingMethod)
       return next(new ErrorResponse("Shipping method not found", 404))

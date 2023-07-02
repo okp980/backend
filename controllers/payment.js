@@ -50,10 +50,6 @@ const makepayment = async (req, res, next) => {
       callback_url: `${req.protocol}://${req.hostname}/api/v1/orders/${orderId}/verify`,
       currency: "NGN",
     }
-    console.log(
-      "url ==>",
-      `${req.protocol}://${req.hostname}${req.originalUrl}/${orderId}/verify`
-    )
 
     const data = await Paystack.transaction.initialize(options)
     // initialize the payment model for that order
