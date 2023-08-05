@@ -19,6 +19,8 @@ const paymentMethodRouter = require("./routes/paymentMethod")
 const shipppingAddressRouter = require("./routes/shippingAddress")
 const shipppingMethodRouter = require("./routes/shippingMethod")
 const analyticsRouter = require("./routes/analytics")
+const attributeRouter = require("./routes/attributes")
+const attributeValueRouter = require("./routes/attributeValues")
 
 // Db
 const connectDB = require("./db")
@@ -63,6 +65,8 @@ app.use("/api/v1/subcategories", subcategoryRouter)
 app.use("/api/v1/payment-methods", paymentMethodRouter)
 app.use("/api/v1/shipping-address", shipppingAddressRouter)
 app.use("/api/v1/shipping-methods", shipppingMethodRouter)
+app.use("/api/v1/attributes", attributeRouter)
+app.use("/api/v1/attribute-values", attributeValueRouter)
 
 // 404 error
 app.use((req, res, next) => {

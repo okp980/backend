@@ -9,7 +9,6 @@ const CartProduct = require("../models/CartProduct")
 // @access - Private
 exports.getCart = async function (req, res, next) {
   const { cartId } = req.cookies
-
   try {
     const cart = await Cart.findById(cartId).populate({
       path: "products",
