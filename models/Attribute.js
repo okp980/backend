@@ -21,4 +21,11 @@ const attributeSchema = Schema(
   }
 )
 
+attributeSchema.virtual("values", {
+  ref: "AttributeValue",
+  localField: "_id",
+  foreignField: "attribute",
+  justOne: false,
+})
+
 module.exports = model("Attribute", attributeSchema)

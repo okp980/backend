@@ -7,10 +7,10 @@ const ErrorResponse = require("../util/ErrorResponse")
 // @access - Private
 exports.getAttributes = async function (req, res, next) {
   try {
-    const attributes = await Attribute.find()
+    const attributes = await Attribute.find().populate("values")
     res
       .status(200)
-      .json({ success: true, count: Attributes.length, data: attributes })
+      .json({ success: true, count: attributes.length, data: attributes })
   } catch (error) {
     next(error)
   }

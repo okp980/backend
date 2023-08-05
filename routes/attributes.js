@@ -16,7 +16,7 @@ router.use("/:attributeId/attribute-values", AttributeValuesRouter)
 
 router
   .route("/")
-  .get(protect, getAttributes)
+  .get(getAttributes)
   .post(protect, authorize("admin"), createAttribute)
 router
   .route("/:attributeId")
