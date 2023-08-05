@@ -17,7 +17,7 @@ const router = express.Router()
 
 router
   .route("/")
-  .get(protect, authorize("admin"), advancedResults(Order), getOrders)
+  .get(advancedResults(Order), getOrders)
   .post(protect, createOrder)
 router.route("/user").get(protect, getUserOrders)
 

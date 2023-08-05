@@ -4,6 +4,7 @@ const dotenv = require("dotenv")
 const morgan = require("morgan")
 const fileUpload = require("express-fileupload")
 const cookieParser = require("cookie-parser")
+const cors = require("cors")
 
 // Routes
 const productRouter = require("./routes/products")
@@ -17,11 +18,12 @@ const orderRouter = require("./routes/order")
 const paymentMethodRouter = require("./routes/paymentMethod")
 const shipppingAddressRouter = require("./routes/shippingAddress")
 const shipppingMethodRouter = require("./routes/shippingMethod")
+const analyticsRouter = require("./routes/analytics")
 
 // Db
 const connectDB = require("./db")
 
-const { default: mongoose } = require("mongoose")
+const mongoose = require("mongoose")
 const errorHandler = require("./middleware/errorHandler")
 const ErrorResponse = require("./util/ErrorResponse")
 
@@ -31,6 +33,9 @@ dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 4000
+
+// CORS
+app.use(cors())
 
 // morgan
 if (process.env.NODE_ENV === "development") {
@@ -48,6 +53,7 @@ app.use(fileUpload())
 app.use("/api/v1/auth", AuthRouter)
 app.use("/api/v1/cart", cartRouter)
 app.use("/api/v1/orders", orderRouter)
+app.use("/api/v1/analytics", analyticsRouter)
 // app.use("/api/v1/pay", paymentRouter)
 app.use("/api/v1/users", UserRouter)
 app.use("/api/v1/coupons", couponRouter)

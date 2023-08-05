@@ -86,7 +86,7 @@ exports.updateCategoryImage = async (req, res, next) => {
     category = await Category.findByIdAndUpdate(
       req.params.id,
       {
-        image: req.image.name,
+        image: req.image,
       },
       {
         new: true,

@@ -87,6 +87,16 @@ exports.getNewArrivalProducts = async (req, res, next) => {
     next(error)
   }
 }
+//@desc -  get Popular products
+//@route - GET /api/v1/products/popular-products
+//@access - Public
+exports.getPopularProducts = async (req, res, next) => {
+  try {
+    res.status(200).json(res.advancedResults)
+  } catch (error) {
+    next(error)
+  }
+}
 //@desc -  get trending products
 //@route - GET /api/v1/products/trending
 //@access - Public

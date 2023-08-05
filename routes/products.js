@@ -9,6 +9,7 @@ const {
   getNewArrivalProducts,
   getTrendingProducts,
   getRecommendedProducts,
+  getPopularProducts,
 } = require("../controllers/products")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
@@ -19,10 +20,13 @@ const router = express.Router()
 
 router
   .route("/")
-  .get(advancedResults(Product), getProducts)
+  .get(advancedResults(Product, "category sub_category"), getProducts)
   .post(protect, authorize("admin"), ImageUpload, addProduct)
 router.route("/new-arrival").get(getNewArrivalProducts)
-router.route("/trending").get(getTrendingProducts)
+router.route("/new-arrival").get(getNewArrivalProducts)
+router
+  .route("/popular-products")
+  .get(advancedResults(Product, "category sub_category"), getPopularProducts)
 router
   .route("/recommended")
   .get(advancedResults(Product), getRecommendedProducts)
