@@ -3,16 +3,15 @@ const { addDays, format } = require("date-fns")
 const Product = require("../models/Product")
 const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
+const { getAdvancedResults } = require("../util/helper")
 
 //@desc - Get all shipping methods
 //@route - GET api/v1/shipping-methods
 // @access - Private
 exports.getAllShippingMethods = async function (req, res, next) {
   try {
-    const methods = await ShippingMethod.find()
-    res
-      .status(200)
-      .json({ success: true, count: methods.length, data: methods })
+    const results = await getAdvancedResults(req, ShippingMethod)
+    res.status(200).json(results)
   } catch (error) {
     next(error)
   }
