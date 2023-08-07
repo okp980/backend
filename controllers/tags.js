@@ -1,6 +1,7 @@
 const Category = require("../models/Category")
 const Tag = require("../models/Tag")
 const ErrorResponse = require("../util/ErrorResponse")
+const { getAdvancedResults } = require("../util/helper")
 
 //@desc - Get all Tags
 //@route - GET api/v1/tags
@@ -9,16 +10,25 @@ const ErrorResponse = require("../util/ErrorResponse")
 exports.getTags = async function (req, res, next) {
   try {
     let tags = []
+    let result
     if (req.params.id) {
       const category = await Category.findById(req.params.id)
       if (!category) return next(new ErrorResponse("Category Not Found", 404))
-      tags = await Tag.find({
-        category: req.params.id,
-      }).populate("category", "name")
+
+      result = await getAdvancedResults(req, Tag, {
+        query: {
+          category: req.params.id,
+        },
+        populate: ["category"],
+      })
     } else {
-      tags = await Tag.find().populate("category", "name")
+      result = await getAdvancedResults(req, Tag, {
+        config: {
+          populate: ["category"],
+        },
+      })
     }
-    res.status(200).json({ success: true, count: tags.length, data: tags })
+    res.status(200).json(result)
   } catch (error) {
     next(error)
   }
