@@ -22,7 +22,6 @@ exports.addProduct = async (req, res, next) => {
 //@route - GET /api/v1/products
 //@access - Public
 exports.getProducts = async (req, res, next) => {
-  console.log("query isss", req.query)
   const config = {}
   try {
     const result = await getAdvancedResults(req, Product, config)

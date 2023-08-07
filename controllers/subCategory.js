@@ -1,7 +1,11 @@
 const Product = require("../models/Product")
 const SubCategory = require("../models/SubCategory")
 const ErrorResponse = require("../util/ErrorResponse")
-const { deleteFile, runInTransaction } = require("../util/helper")
+const {
+  deleteFile,
+  runInTransaction,
+  getAdvancedResults,
+} = require("../util/helper")
 
 //@desc -  Add SubCategory
 //@route - POST /api/v1/subcategories
@@ -30,13 +34,18 @@ exports.addSubCategory = async (req, res, next) => {
 exports.getSubcategory = async (req, res, next) => {
   const categoryId = req.params.catID
   try {
-    const categories = categoryId
-      ? await SubCategory.find({ category: categoryId })
-      : await SubCategory.find().populate("category", "name")
+    const result = categoryId
+      ? await getAdvancedResults(req, SubCategory, {
+          query: { category: categoryId },
+        })
+      : await getAdvancedResults(req, SubCategory, {
+          populate: [{ path: "category", select: "name" }],
+        })
+    // const categories = categoryId
+    //   ? await SubCategory.find({ category: categoryId })
+    //   : await SubCategory.find().populate("category", "name")
 
-    res
-      .status(200)
-      .json({ success: true, count: categories.length, data: categories })
+    res.status(200).json({ ...result })
   } catch (error) {
     next(error)
   }

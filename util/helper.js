@@ -40,6 +40,10 @@ const getAdvancedResults = async (request, model, config) => {
     }
   })
 
+  //Add query from config
+  if (config && config.hasOwnProperty("query")) {
+    queryStr = { ...queryStr, ...config.query }
+  }
   query = model.find(queryStr)
 
   // select field
@@ -81,7 +85,9 @@ const getAdvancedResults = async (request, model, config) => {
     }
   }
 
-  const result = await query.populate("category").populate("sub_category")
+  const result = config.populate
+    ? await query.populate([config.populate])
+    : await query
   return {
     success: true,
     count: result.length,
