@@ -3,12 +3,13 @@
 
 const User = require("../models/User")
 const ErrorResponse = require("../util/ErrorResponse")
+const { getAdvancedResults } = require("../util/helper")
 
 // @access - Private
 exports.getUsers = async function (req, res, next) {
   try {
-    const users = await User.find()
-    res.status(200).json({ success: true, count: users.length, data: users })
+    const result = await getAdvancedResults(req, User)
+    res.status(200).json(result)
   } catch (error) {
     next(error)
   }
