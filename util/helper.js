@@ -85,7 +85,7 @@ const getAdvancedResults = async (request, model, config) => {
     }
   }
 
-  const result = config.populate
+  const result = config?.populate
     ? await query.populate([config.populate])
     : await query
   return {

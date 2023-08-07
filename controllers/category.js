@@ -2,7 +2,11 @@ const Category = require("../models/Category")
 const Product = require("../models/Product")
 const SubCategory = require("../models/SubCategory")
 const ErrorResponse = require("../util/ErrorResponse")
-const { deleteFile, runInTransaction } = require("../util/helper")
+const {
+  deleteFile,
+  runInTransaction,
+  getAdvancedResults,
+} = require("../util/helper")
 
 //@desc -  Add Category
 //@route - POST /api/v1/categories
@@ -31,8 +35,8 @@ exports.addCategory = async (req, res, next) => {
 //@access - Public
 exports.getCategory = async (req, res, next) => {
   try {
-    const categories = await Category.find()
-    res.status(200).json({ success: true, data: categories })
+    const result = await getAdvancedResults(req, Category)
+    res.status(200).json(result)
   } catch (error) {
     next(error)
   }
