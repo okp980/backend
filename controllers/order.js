@@ -4,13 +4,17 @@ const OrderItem = require("../models/OrderItem")
 const ShippingAddress = require("../models/ShippingAddress")
 const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
+const { getAdvancedResults } = require("../util/helper")
 
 //@desc - Get all Orders
 //@route - GET api/v1/orders
 // @access - Private
 exports.getOrders = async (req, res, next) => {
   try {
-    res.status(200).json(res.advancedResults)
+    const result = await getAdvancedResults(req, Order, {
+      populate: ["shippingMethod shippingAddress"],
+    })
+    res.status(200).json(result)
   } catch (error) {
     next(error)
   }

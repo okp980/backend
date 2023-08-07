@@ -15,10 +15,7 @@ const Order = require("../models/Order")
 
 const router = express.Router()
 
-router
-  .route("/")
-  .get(advancedResults(Order, "shippingMethod shippingAddress"), getOrders)
-  .post(protect, createOrder)
+router.route("/").get(getOrders).post(protect, createOrder)
 router.route("/user").get(protect, getUserOrders)
 
 router
