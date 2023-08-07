@@ -2,11 +2,11 @@ const fs = require("fs").promises
 const mongoose = require("mongoose")
 const path = require("path")
 
-exports.deleteFile = async (dir, file) => {
+const deleteFile = async (dir, file) => {
   await fs.unlink(path.join(__dirname, "..", "public", dir, file))
 }
 
-exports.runInTransaction = async (callback) => {
+const runInTransaction = async (callback) => {
   const session = await mongoose.startSession()
   session.startTransaction()
   try {
@@ -20,3 +20,75 @@ exports.runInTransaction = async (callback) => {
     session.endSession()
   }
 }
+
+const getAdvancedResults = async (request, model, config) => {
+  let query
+
+  let queryStr = JSON.stringify(request.query)
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`)
+
+  // parsed query
+
+  queryStr = JSON.parse(queryStr)
+
+  // fields to remove
+  const removeFields = ["select", "sort", "page", "limit"]
+
+  removeFields.forEach((item) => {
+    if (queryStr[item]) {
+      delete queryStr[item]
+    }
+  })
+
+  query = model.find(queryStr)
+
+  // select field
+  if (request.query.select) {
+    const fields = request.query.select.split(",").join(" ")
+    query.select(fields)
+  }
+
+  // sort by
+  if (request.query.sort) {
+    const sortBy = request.query.sort.split(",").join(" ")
+    query.sort(sortBy)
+  } else {
+    query.sort("-createdAt")
+  }
+
+  // Pagination
+  const page = parseInt(request.query.page, 10) || 1
+  const limit = parseInt(request.query.limit, 10) || 5
+  const startIndex = (page - 1) * limit
+  const endIndex = page * limit
+  const total = await model.countDocuments()
+
+  query = query.skip(startIndex).limit(limit)
+
+  const pagination = { current: page, limit, total }
+
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    }
+  }
+
+  if (startIndex > 0) {
+    pagination.previous = {
+      page: page - 1,
+      limit,
+    }
+  }
+
+  const result = await query.populate("category").populate("sub_category")
+  return {
+    success: true,
+    count: result.length,
+
+    pagination: pagination,
+    data: result,
+  }
+}
+
+module.exports = { getAdvancedResults, runInTransaction, deleteFile }

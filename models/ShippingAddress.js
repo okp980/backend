@@ -65,4 +65,8 @@ shipppingAdressSchema.virtual("fullName").get(function () {
   return this.firstName + " " + this.lastName
 })
 
+shipppingAdressSchema.virtual("full_address").get(function () {
+  return `${this.address}, ${this.city}, ${this.state}.`
+})
+
 module.exports = model("ShippingAddress", shipppingAdressSchema)

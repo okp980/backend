@@ -6,12 +6,6 @@ const ErrorResponse = require("../util/ErrorResponse")
 
 const UserSchema = new Schema(
   {
-    firstName: {
-      type: String,
-    },
-    lastName: {
-      type: String,
-    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -27,8 +21,9 @@ const UserSchema = new Schema(
       minlength: [6, "Minimum password length must be at least 6 characters"],
       select: false,
     },
-
-    phone: String,
+    profile: { type: Schema.Types.ObjectId, ref: "Profile", default: null },
+    verified_email: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     role: {

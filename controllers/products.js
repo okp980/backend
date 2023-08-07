@@ -1,6 +1,6 @@
 const Product = require("../models/Product")
 const ErrorResponse = require("../util/ErrorResponse")
-const { deleteFile } = require("../util/helper")
+const { deleteFile, getAdvancedResults } = require("../util/helper")
 
 //@desc -  Add Product
 //@route - POST /api/v1/products
@@ -22,53 +22,14 @@ exports.addProduct = async (req, res, next) => {
 //@route - GET /api/v1/products
 //@access - Public
 exports.getProducts = async (req, res, next) => {
-  // const { colors, sizes, sortBy, select, limit, page } = req.query
-
-  // if (colors) {
-  //   const colorsArr = colors.split(",")
-  //   queury["meta.colors"] = { $in: colorsArr }
-  // }
-  // if (sizes) {
-  //   const sizesArr = sizes.split(",")
-  //   queury["meta.sizes"] = { $in: sizesArr }
-  // }
-
-  // let queryFn = Product.find(queury)
-
-  // // Pagination
-  // const limitBy = parseInt(limit, 10) || 10
-  // const currentPage = parseInt(page, 10) || 1
-  // const startIndex = (currentPage - 1) * limitBy
-  // const endIndex = currentPage * limitBy
-  // const total = await Product.countDocuments(queury)
-
-  // const pagination = { currentPage }
-  // if (startIndex > 0) {
-  //   pagination.previousPage = currentPage - 1
-  // }
-  // if (endIndex < total) {
-  //   pagination.nextPage = currentPage + 1
-  // }
-
-  // queryFn = queryFn.skip(startIndex).limit(limitBy)
-
-  // // Select fields
-  // if (select) {
-  //   const fields = select.split(",").join(" ")
-  //   queryFn = queryFn.select(fields)
-  // } else {
-  //   queryFn = queryFn.populate("product", "name")
-  // }
-
-  // // Sort fields
-  // if (sortBy) {
-  //   queryFn = queryFn.sort(sortBy)
-  // } else {
-  //   queryFn = queryFn.sort("-createdAt")
-  // }
-
+  console.log("query isss", req.query)
+  const config = {}
   try {
-    res.status(200).json(res.advancedResults)
+    const result = await getAdvancedResults(req, Product, config)
+
+    res.status(200).json({
+      ...result,
+    })
   } catch (error) {
     next(error)
   }

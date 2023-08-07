@@ -9,10 +9,7 @@ const { protect, authorize } = require("../middleware/auth")
 
 const router = express.Router({ mergeParams: true })
 
-router
-  .route("/")
-  .get(protect, getTags)
-  .post(protect, authorize("admin"), createTag)
+router.route("/").get(getTags).post(protect, authorize("admin"), createTag)
 router
   .route("/:tagId")
   .put(protect, authorize("admin"), updateTag)

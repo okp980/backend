@@ -13,7 +13,7 @@ const router = express.Router()
 
 router
   .route("/")
-  .get(protect, getAllShippingMethods)
+  .get(getAllShippingMethods)
   .post(protect, authorize("admin"), createShippingMethod)
 router
   .route("/:methodId")

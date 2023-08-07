@@ -16,7 +16,7 @@ exports.getTags = async function (req, res, next) {
         category: req.params.id,
       }).populate("category", "name")
     } else {
-      tags = await Tag.find()
+      tags = await Tag.find().populate("category", "name")
     }
     res.status(200).json({ success: true, count: tags.length, data: tags })
   } catch (error) {

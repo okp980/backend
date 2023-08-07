@@ -16,7 +16,10 @@ exports.getAttributeValues = async function (req, res, next) {
         attribute: req.params.attributeId,
       }).populate("attribute", "name")
     } else {
-      attributeValues = await AttributeValue.find()
+      attributeValues = await AttributeValue.find().populate(
+        "attribute",
+        "name"
+      )
     }
     res.status(200).json({
       success: true,

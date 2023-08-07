@@ -10,10 +10,7 @@ const { protect, authorize } = require("../middleware/auth")
 
 const router = express.Router()
 
-router
-  .route("/")
-  .get(protect, authorize("admin"), getUsers)
-  .post(protect, authorize("admin"), createUser)
+router.route("/").get(getUsers).post(protect, authorize("admin"), createUser)
 router
   .route("/:userId")
   .get(protect, authorize("admin"), getUser)
