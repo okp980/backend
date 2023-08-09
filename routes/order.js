@@ -15,7 +15,7 @@ const Order = require("../models/Order")
 
 const router = express.Router()
 
-router.route("/").get(getOrders).post(protect, createOrder)
+router.route("/").get(protect, getOrders).post(protect, createOrder)
 router.route("/user").get(protect, getUserOrders)
 
 router

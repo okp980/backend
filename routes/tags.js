@@ -4,6 +4,7 @@ const {
   createTag,
   updateTag,
   deleteTag,
+  getSingleTag,
 } = require("../controllers/tags")
 const { protect, authorize } = require("../middleware/auth")
 
@@ -14,5 +15,6 @@ router
   .route("/:tagId")
   .put(protect, authorize("admin"), updateTag)
   .delete(protect, authorize("admin"), deleteTag)
+router.route("/:id").get(protect, authorize("admin"), getSingleTag)
 
 module.exports = router

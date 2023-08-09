@@ -34,6 +34,19 @@ exports.getTags = async function (req, res, next) {
   }
 }
 
+//@desc - Get Single Tags
+//@route - GET api/v1/tags/:id
+// @access - Private
+exports.getSingleTag = async function (req, res, next) {
+  try {
+    const tag = await Tag.findById(req.params.id)
+    if (!tag) return next(new ErrorResponse("Tag Not Found", 404))
+    res.status(200).json({ success: true, data: tag })
+  } catch (error) {
+    next(error)
+  }
+}
+
 //@desc - Create Tag
 //@route - POST api/v1/categories/:id/tags
 // @access - Private
