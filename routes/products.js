@@ -21,7 +21,7 @@ const router = express.Router()
 router
   .route("/")
   .get(advancedResults(Product, "category sub_category"), getProducts)
-  .post(protect, authorize("admin"), ImageUpload, addProduct)
+  .post(protect, authorize("admin"), addProduct)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router

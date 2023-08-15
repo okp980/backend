@@ -6,6 +6,7 @@ const {
   deleteSubcategory,
   updateSubcategoryImage,
   getSubCategoryProducts,
+  getSingleSubcategory,
 } = require("../controllers/subCategory")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
@@ -18,6 +19,7 @@ router
   .post(protect, authorize("admin"), ImageUpload, addSubCategory)
 router
   .route("/:id")
+  .get(getSingleSubcategory)
   .put(protect, authorize("admin"), updateSubcategory)
   .delete(protect, authorize("admin"), deleteSubcategory)
 router.route("/:id/products").get(getSubCategoryProducts)

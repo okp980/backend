@@ -6,6 +6,7 @@ const productSchema = new Schema(
   {
     name: {
       type: String,
+      unique: true,
       trim: true,
       required: [true, "Name of product is required"],
       maxLength: [50, "Maximum length is 50 characters"],
@@ -13,7 +14,7 @@ const productSchema = new Schema(
     slug: {
       type: String,
       // required: [true, "Slug of product is required"],
-      unique: true,
+      // unique: true,
       lowercase: true,
     },
     description: {
@@ -23,14 +24,14 @@ const productSchema = new Schema(
     },
     price: {
       type: Number,
-      required: [true, "Price of product is required"],
+      // required: [true, "Price of product is required"],
     },
     oldPrice: {
       type: Number,
     },
     image: {
       type: String,
-      required: [true, "Image of product is required"],
+      // required: [true, "Image of product is required"],
     },
     gallery: {
       type: Array,
@@ -46,7 +47,6 @@ const productSchema = new Schema(
     },
     quantity: {
       type: Number,
-      required: [true, "Quantity of product is required"],
     },
     sold: {
       type: Number,
@@ -59,21 +59,17 @@ const productSchema = new Schema(
     tags: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Tags",
+        ref: "Tag",
       },
     ],
+    product_type: {
+      type: String,
+      enum: ["simple", "variable"],
+      required: true,
+    },
+    variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variation" }],
     brand: {
       type: String,
-      enum: ["apple", "samsung"],
-    },
-    color: {
-      type: String,
-      enum: ["red", "orange", "green"],
-    },
-
-    size: {
-      type: String,
-      enum: ["xs", "l"],
     },
     weight: {
       type: Number,

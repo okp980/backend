@@ -57,6 +57,22 @@ exports.getCategoryProducts = async (req, res, next) => {
 }
 
 //@desc -  update single Category
+//@route - GET /api/v1/categories/:id
+//@access - Public
+exports.getSingleCategory = async (req, res, next) => {
+  try {
+    let category = await Category.findById(req.params.id)
+    if (!category) {
+      return new ErrorResponse("Category not found", 404)
+    }
+
+    res.status(200).json({ success: true, data: category })
+  } catch (error) {
+    next(error)
+  }
+}
+
+//@desc -  update single Category
 //@route - PUT /api/v1/categories/:id
 //@access - Private
 exports.updateCategory = async (req, res, next) => {

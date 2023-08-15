@@ -83,7 +83,7 @@ exports.updateShippingMethod = async function (req, res, next) {
     let method = await ShippingMethod.findById(req.params.methodId)
     if (!method) return next(new ErrorResponse("ShippingMethod not found", 404))
     method = await ShippingMethod.findByIdAndUpdate(
-      req.params.method,
+      req.params.methodId,
       req.body,
       {
         new: true,

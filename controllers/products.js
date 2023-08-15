@@ -1,4 +1,5 @@
 const Product = require("../models/Product")
+const Variation = require("../models/variation")
 const ErrorResponse = require("../util/ErrorResponse")
 const { deleteFile, getAdvancedResults } = require("../util/helper")
 
@@ -6,15 +7,36 @@ const { deleteFile, getAdvancedResults } = require("../util/helper")
 //@route - POST /api/v1/products
 //@access - Private
 exports.addProduct = async (req, res, next) => {
+  console.log(req.body)
+  const { tags, variants, gallery, image, ...body } = req.body
   try {
-    const product = await Product.create({ ...req.body, image: req.image.name })
+    const parsedTags = await JSON.parse(tags)
+    const variations = await Promise.all(
+      JSON.parse(variants).map(async (variation) => {
+        const attr = variation.attributeValues.map((a) => a.value)
+        return await Variation.create({
+          ...variation,
+          attributeValue: attr,
+        })
+      })
+    )
+
+    const productValues = {
+      ...body,
+      tags: parsedTags,
+      variants: variations.map((v) => v.id),
+    }
+
+    console.log("productValues", productValues)
+
+    const product = await Product.create(productValues)
     res.status(201).json({
       success: true,
       message: "Product created successfully",
       data: product,
     })
   } catch (error) {
-    await deleteFile("uploads", req.image.name)
+    // await deleteFile("uploads", req.image.name)
     next(error)
   }
 }
@@ -89,6 +111,11 @@ exports.getRecommendedProducts = async (req, res, next) => {
 exports.getProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id)
+      .populate("tags")
+      .populate("variants")
+      .populate("sub_category")
+      .populate("category")
+
     if (!product) {
       return new ErrorResponse("Product not found", 404)
     }

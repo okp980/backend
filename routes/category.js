@@ -6,6 +6,7 @@ const {
   deleteCategory,
   updateCategoryImage,
   getCategoryProducts,
+  getSingleCategory,
 } = require("../controllers/category")
 const subcategoryRouter = require("./subcategory")
 const tagRouter = require("./tags")
@@ -25,6 +26,7 @@ router
 
 router
   .route("/:id")
+  .get(getSingleCategory)
   .put(protect, authorize("admin"), updateCategory)
   .delete(protect, authorize("admin"), deleteCategory)
 router.route("/:id/products").get(getCategoryProducts)

@@ -67,6 +67,22 @@ exports.getSubCategoryProducts = async (req, res, next) => {
 }
 
 //@desc -  update single SubCategory
+//@route - GET /api/v1/subcategories/:id
+//@access - Public
+exports.getSingleSubcategory = async (req, res, next) => {
+  try {
+    let category = await SubCategory.findById(req.params.id)
+    if (!category) {
+      return new ErrorResponse("SubCategory not found", 404)
+    }
+
+    res.status(200).json({ success: true, data: category })
+  } catch (error) {
+    next(error)
+  }
+}
+
+//@desc -  update single SubCategory
 //@route - PUT /api/v1/subcategories/:id
 //@access - Private
 exports.updateSubcategory = async (req, res, next) => {
