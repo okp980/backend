@@ -16,12 +16,21 @@ const { protect, authorize } = require("../middleware/auth")
 const { getProductShippingMethod } = require("../controllers/shippingMethod")
 const Product = require("../models/Product")
 const advancedResults = require("../middleware/advancedResults")
+const upload = require("../util/fileUploader")
 const router = express.Router()
 
 router
   .route("/")
   .get(advancedResults(Product, "category sub_category"), getProducts)
-  .post(protect, authorize("admin"), addProduct)
+  .post(
+    protect,
+    authorize("admin"),
+    upload.fields([
+      { name: "image", maxCount: 1 },
+      { name: "gallery", maxCount: 8 },
+    ]),
+    addProduct
+  )
 router.route("/new-arrival").get(getNewArrivalProducts)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router

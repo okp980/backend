@@ -51,7 +51,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, "public")))
 app.use(cookieParser())
 
-app.use(fileUpload())
+// app.use(fileUpload())
 
 // handle routes
 app.use("/api/v1/auth", AuthRouter)

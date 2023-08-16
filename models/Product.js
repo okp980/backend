@@ -31,10 +31,11 @@ const productSchema = new Schema(
     },
     image: {
       type: String,
-      // required: [true, "Image of product is required"],
+      required: [true, "Image of product is required"],
     },
     gallery: {
-      type: Array,
+      type: [String],
+      required: [true, "Gallery is required"],
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,7 +44,7 @@ const productSchema = new Schema(
     sub_category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SubCategory",
-      required: [true, "Category of product is required"],
+      required: [true, "Sub Category of product is required"],
     },
     quantity: {
       type: Number,
@@ -70,6 +71,7 @@ const productSchema = new Schema(
     variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variation" }],
     brand: {
       type: String,
+      required: true,
     },
     weight: {
       type: Number,

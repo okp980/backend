@@ -2,32 +2,53 @@ const Product = require("../models/Product")
 const Variation = require("../models/variation")
 const ErrorResponse = require("../util/ErrorResponse")
 const { deleteFile, getAdvancedResults } = require("../util/helper")
+const uploadToBucket = require("../util/s3")
 
 //@desc -  Add Product
 //@route - POST /api/v1/products
 //@access - Private
 exports.addProduct = async (req, res, next) => {
-  console.log(req.body)
-  const { tags, variants, gallery, image, ...body } = req.body
+  let variations = []
+
+  const { tags, variants, product_type, ...body } = req.body
   try {
-    const parsedTags = await JSON.parse(tags)
-    const variations = await Promise.all(
-      JSON.parse(variants).map(async (variation) => {
-        const attr = variation.attributeValues.map((a) => a.value)
-        return await Variation.create({
-          ...variation,
-          attributeValue: attr,
-        })
+    // send to S3
+    const imageResult = await uploadToBucket(
+      req.files.image[0].path,
+      req.files.image[0].filename
+    )
+    // delete file after upload
+    await deleteFile("uploads", req.files.image[0].filename)
+
+    // send to S3 and delete after upload
+    const galleryResult = await Promise.all(
+      req.files.gallery.map(async (file) => {
+        const result = await uploadToBucket(file.path, file.filename)
+        await deleteFile("uploads", file.filename)
+        return result.Location
       })
     )
+    const parsedTags = await JSON.parse(tags)
+    if (product_type === "variable") {
+      variations = await Promise.all(
+        JSON.parse(variants).map(async (variation) => {
+          const attr = variation.attributeValues.map((a) => a.value)
+          return await Variation.create({
+            ...variation,
+            attributeValue: attr,
+          })
+        })
+      )
+    }
 
     const productValues = {
       ...body,
+      image: imageResult.Location,
+      gallery: galleryResult,
       tags: parsedTags,
+      product_type,
       variants: variations.map((v) => v.id),
     }
-
-    console.log("productValues", productValues)
 
     const product = await Product.create(productValues)
     res.status(201).json({
@@ -36,7 +57,12 @@ exports.addProduct = async (req, res, next) => {
       data: product,
     })
   } catch (error) {
-    // await deleteFile("uploads", req.image.name)
+    console.log("remove uploaded files")
+    for (const key in req.files) {
+      for (const value of req.files[key]) {
+        await deleteFile("uploads", value.filename)
+      }
+    }
     next(error)
   }
 }
