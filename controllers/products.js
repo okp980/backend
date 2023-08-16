@@ -72,7 +72,9 @@ exports.addProduct = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   const config = {}
   try {
-    const result = await getAdvancedResults(req, Product, config)
+    const result = await getAdvancedResults(req, Product, {
+      populate: ["category", "sub_category"],
+    })
 
     res.status(200).json({
       ...result,
@@ -87,7 +89,7 @@ exports.getProducts = async (req, res, next) => {
 //@access - Public
 exports.getNewArrivalProducts = async (req, res, next) => {
   try {
-    const newProducts = await Product.find()
+    const newProducts = await getAdvancedResults(req, Product, config)
     res
       .status(200)
       .json({ success: true, count: newProducts.length, data: newProducts })
@@ -100,7 +102,12 @@ exports.getNewArrivalProducts = async (req, res, next) => {
 //@access - Public
 exports.getPopularProducts = async (req, res, next) => {
   try {
-    res.status(200).json(res.advancedResults)
+    const newProducts = await getAdvancedResults(req, Product, {
+      populate: ["categoy", "sub_category"],
+    })
+    res
+      .status(200)
+      .json({ success: true, count: newProducts.length, data: newProducts })
   } catch (error) {
     next(error)
   }
@@ -110,12 +117,10 @@ exports.getPopularProducts = async (req, res, next) => {
 //@access - Public
 exports.getTrendingProducts = async (req, res, next) => {
   try {
-    const trendingProducts = await Product.find()
-    res.status(200).json({
-      success: true,
-      count: trendingProducts.length,
-      data: trendingProducts,
-    })
+    const newProducts = await getAdvancedResults(req, Product, config)
+    res
+      .status(200)
+      .json({ success: true, count: newProducts.length, data: newProducts })
   } catch (error) {
     next(error)
   }
@@ -125,7 +130,10 @@ exports.getTrendingProducts = async (req, res, next) => {
 //@access - Public
 exports.getRecommendedProducts = async (req, res, next) => {
   try {
-    res.status(200).json(res.advancedResults)
+    const newProducts = await getAdvancedResults(req, Product, config)
+    res
+      .status(200)
+      .json({ success: true, count: newProducts.length, data: newProducts })
   } catch (error) {
     next(error)
   }

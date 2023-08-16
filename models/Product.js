@@ -103,4 +103,23 @@ productSchema.pre("save", async function (next) {
   next()
 })
 
+productSchema.virtual("max_price").get(function () {
+  if (this.product_type === "variable") {
+    return 200
+  }
+  return this.price
+})
+productSchema.virtual("min_price").get(function () {
+  if (this.product_type === "variable") {
+    return 50
+  }
+  return this.price
+})
+productSchema.virtual("total_quantity").get(function () {
+  if (this.product_type === "variable") {
+    return 20
+  }
+  return this.quantity
+})
+
 module.exports = mongoose.model("Product", productSchema)
