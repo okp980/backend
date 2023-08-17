@@ -12,6 +12,7 @@ const subcategoryRouter = require("./subcategory")
 const tagRouter = require("./tags")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
+const upload = require("../util/fileUploader")
 
 const router = express.Router()
 
@@ -22,7 +23,7 @@ router.use("/:id/tags", tagRouter)
 router
   .route("/")
   .get(getCategory)
-  .post(protect, authorize("admin"), ImageUpload, addCategory)
+  .post(protect, authorize("admin"), upload.single("image"), addCategory)
 
 router
   .route("/:id")

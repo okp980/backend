@@ -38,7 +38,17 @@ const app = express()
 const port = process.env.PORT || 4000
 
 // CORS
-app.use(cors())
+var whitelist = ["https://zuraaya.onrender.com", "http://localhost:4000"]
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+}
+app.use(cors(corsOptions))
 
 // morgan
 if (process.env.NODE_ENV === "development") {

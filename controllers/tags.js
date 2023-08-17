@@ -23,9 +23,7 @@ exports.getTags = async function (req, res, next) {
       })
     } else {
       result = await getAdvancedResults(req, Tag, {
-        config: {
-          populate: ["category"],
-        },
+        populate: ["category"],
       })
     }
     res.status(200).json(result)

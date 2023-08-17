@@ -10,13 +10,14 @@ const {
 } = require("../controllers/subCategory")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
+const upload = require("../util/fileUploader")
 
 const router = express.Router({ mergeParams: true })
 
 router
   .route("/")
   .get(getSubcategory)
-  .post(protect, authorize("admin"), ImageUpload, addSubCategory)
+  .post(protect, authorize("admin"), upload.single("image"), addSubCategory)
 router
   .route("/:id")
   .get(getSingleSubcategory)

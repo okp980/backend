@@ -6,6 +6,7 @@ const {
   runInTransaction,
   getAdvancedResults,
 } = require("../util/helper")
+const uploadToBucket = require("../util/s3")
 
 //@desc -  Add SubCategory
 //@route - POST /api/v1/subcategories
@@ -13,9 +14,13 @@ const {
 //@access - Private
 exports.addSubCategory = async (req, res, next) => {
   try {
+    // send to S3
+    const imageResult = await uploadToBucket(req.file.path, req.file.filename)
+    // delete file after upload
+    await deleteFile("uploads", req.file.filename)
     const category = await SubCategory.create({
       ...req.body,
-      image: req.image.name,
+      image: imageResult.Location,
     })
     res.status(201).json({
       success: true,
@@ -23,7 +28,7 @@ exports.addSubCategory = async (req, res, next) => {
       data: category,
     })
   } catch (error) {
-    await deleteFile("uploads", req.image.name)
+    await deleteFile("uploads", req.file.filename)
     next(error)
   }
 }
@@ -144,12 +149,7 @@ exports.deleteSubcategory = async (req, res, next) => {
     if (!category) {
       return new ErrorResponse("SubCategory not found", 404)
     }
-    const categoryImage = category.image
-    await runInTransaction(async (session) => {
-      await Product.deleteMany({ sub_category: id })
-      await category.deleteOne({ session })
-      await deleteFile("uploads", categoryImage)
-    })
+    await category.deleteOne()
 
     res
       .status(200)

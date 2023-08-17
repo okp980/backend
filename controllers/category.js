@@ -7,26 +7,30 @@ const {
   runInTransaction,
   getAdvancedResults,
 } = require("../util/helper")
+const uploadToBucket = require("../util/s3")
 
 //@desc -  Add Category
 //@route - POST /api/v1/categories
 //@access - Private
 exports.addCategory = async (req, res, next) => {
   try {
-    let category = await Category.findOne({ name: req.body.name })
-    if (category) {
-      return next(
-        new ErrorResponse(`Category ${category.name} already exists`, 400)
-      )
-    }
-    category = await Category.create({ ...req.body, image: req.image.name })
+    // send to S3
+    const imageResult = await uploadToBucket(req.file.path, req.file.filename)
+    // delete file after upload
+    await deleteFile("uploads", req.file.filename)
+
+    const category = await Category.create({
+      ...req.body,
+      image: imageResult.Location,
+    })
+
     res.status(200).json({
       success: true,
       message: "Category created successfully",
       data: category,
     })
   } catch (error) {
-    await deleteFile("uploads", req.image.name)
+    await deleteFile("uploads", req.file.filename)
     next(error)
   }
 }

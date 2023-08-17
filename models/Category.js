@@ -8,6 +8,7 @@ const categorySchema = Schema(
       type: String,
       required: [true, "Name of product is required"],
       maxLength: [30, "Maximum length is 30 characters"],
+      unique: true,
     },
     //   type: {
     //     type: mongoose.Schema.Types.ObjectId,
