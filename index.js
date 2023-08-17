@@ -38,7 +38,7 @@ const app = express()
 const port = process.env.PORT || 4000
 
 // CORS
-var whitelist = ["https://zuraaya.onrender.com", "http://localhost:4000"]
+var whitelist = ["https://zuraaya-admin.vercel.app", "http://localhost:4000"]
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
