@@ -3,6 +3,7 @@ const Cart = require("../models/Cart")
 const Product = require("../models/Product")
 const ErrorResponse = require("../util/ErrorResponse")
 const CartProduct = require("../models/CartProduct")
+const Variation = require("../models/variation")
 
 //@desc - Get Single Cart
 //@route - GET api/v1/cart
@@ -30,26 +31,35 @@ exports.getCart = async function (req, res, next) {
 //@route - POST api/v1/cart/
 // @access - Private
 exports.AddToCart = async function (req, res, next) {
-  const { productId } = req.body
+  const { productId, variant } = req.body
   const { cartId } = req.cookies
+
+  console.log("product id", productId)
+  console.log("varaint id", variant)
 
   try {
     let cart = null
+    let variationProduct = null
     let product = await Product.findById(productId)
     if (!product) return next(new ErrorResponse("Product not found", 404))
     if (cartId) {
       cart = await Cart.findById(cartId).populate("products")
     }
 
+    if (variant) {
+      variationProduct = await Variation.findById(variant)
+    }
+
     if (!cart) {
       const cartProduct = await new CartProduct({
         product: productId,
-        price: product.price,
+        price: variationProduct ? variationProduct.price : product.price,
+        variant,
       })
 
       cart = await Cart.create({
         products: [cartProduct._id],
-        total: product.price,
+        total: variationProduct ? variationProduct.price : product.price,
       })
       cartProduct.cart = cart._id
       await cartProduct.save()
@@ -57,13 +67,17 @@ exports.AddToCart = async function (req, res, next) {
       let cartProduct = await CartProduct.findOne({
         product: productId,
         cart: cartId,
+        variant,
       }).populate("product")
 
       if (cartProduct) {
         cartProduct = await CartProduct.findOneAndUpdate(
-          { product: productId, cart: cartId },
+          { product: productId, variant, cart: cartId },
           {
-            $inc: { count: 1, price: product.price },
+            $inc: {
+              count: 1,
+              price: variationProduct ? variationProduct.price : product.price,
+            },
           },
           { new: true }
         ).populate("product")
@@ -82,8 +96,9 @@ exports.AddToCart = async function (req, res, next) {
       } else {
         const newCartProduct = await CartProduct.create({
           product: productId,
-          price: product.price,
+          price: variationProduct ? variationProduct.price : product.price,
           cart: cartId,
+          variant,
         })
         // push item to cart and increment total
         cart = await Cart.findByIdAndUpdate(
@@ -94,7 +109,7 @@ exports.AddToCart = async function (req, res, next) {
               products: newCartProduct,
             },
             $inc: {
-              total: product.price,
+              total: variationProduct ? variationProduct.price : product.price,
             },
           },
 

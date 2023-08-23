@@ -20,7 +20,7 @@ const productSchema = new Schema(
     description: {
       type: String,
       required: [true, "Description of product is required"],
-      maxLength: [800, "Maximum length is 800 characters"],
+      maxLength: [2000, "Maximum length is 2000 characters"],
     },
     price: {
       type: Number,

@@ -73,7 +73,18 @@ exports.getProducts = async (req, res, next) => {
   const config = {}
   try {
     const result = await getAdvancedResults(req, Product, {
-      populate: ["category", "sub_category"],
+      populate: [
+        "category",
+        "sub_category",
+        "tags",
+        {
+          path: "variants",
+          populate: {
+            path: "attributeValue",
+            populate: "attribute",
+          },
+        },
+      ],
     })
 
     res.status(200).json({
@@ -89,10 +100,11 @@ exports.getProducts = async (req, res, next) => {
 //@access - Public
 exports.getNewArrivalProducts = async (req, res, next) => {
   try {
-    const newProducts = await getAdvancedResults(req, Product, config)
-    res
-      .status(200)
-      .json({ success: true, count: newProducts.length, data: newProducts })
+    const result = await getAdvancedResults(req, Product, {
+      populate: ["category", "sub_category"],
+    })
+
+    res.status(200).json({ success: true, count: result.length, data: result })
   } catch (error) {
     next(error)
   }
@@ -117,7 +129,7 @@ exports.getPopularProducts = async (req, res, next) => {
 //@access - Public
 exports.getTrendingProducts = async (req, res, next) => {
   try {
-    const newProducts = await getAdvancedResults(req, Product, config)
+    const newProducts = await getAdvancedResults(req, Product)
     res
       .status(200)
       .json({ success: true, count: newProducts.length, data: newProducts })
@@ -130,7 +142,7 @@ exports.getTrendingProducts = async (req, res, next) => {
 //@access - Public
 exports.getRecommendedProducts = async (req, res, next) => {
   try {
-    const newProducts = await getAdvancedResults(req, Product, config)
+    const newProducts = await getAdvancedResults(req, Product)
     res
       .status(200)
       .json({ success: true, count: newProducts.length, data: newProducts })
@@ -146,7 +158,13 @@ exports.getProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate("tags")
-      .populate("variants")
+      .populate({
+        path: "variants",
+        populate: {
+          path: "attributeValue",
+          populate: "attribute",
+        },
+      })
       .populate("sub_category")
       .populate("category")
 
