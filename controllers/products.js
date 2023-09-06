@@ -150,6 +150,27 @@ exports.getRecommendedProducts = async (req, res, next) => {
     next(error)
   }
 }
+//@desc -  get search products
+//@route - GET /api/v1/products/search/:keyword
+//@access - Public
+exports.searchProducts = async (req, res, next) => {
+  let products = []
+  if (!req.params.keyword || req.params?.keyword.length === 0) {
+    return res
+      .status(200)
+      .json({ success: true, count: products.length, data: products })
+  }
+  try {
+    products = await Product.find({
+      name: { $regex: req.params.keyword, $options: "i" },
+    }).limit(10)
+    res
+      .status(200)
+      .json({ success: true, count: products.length, data: products })
+  } catch (error) {
+    next(error)
+  }
+}
 
 //@desc -  get all products
 //@route - GET /api/v1/products/:id

@@ -8,8 +8,10 @@ const {
   createOrder,
   updateOrdersStatus,
   deleteOrder,
+  verifyPayment,
+  orderSummary,
 } = require("../controllers/order")
-const { makepayment, verifyPayment } = require("../controllers/payment")
+const { makepayment } = require("../controllers/payment")
 const advancedResults = require("../middleware/advancedResults")
 const Order = require("../models/Order")
 
@@ -25,7 +27,7 @@ router
 router
   .route("/:orderId/status")
   .put(protect, authorize("admin"), updateOrdersStatus)
-router.route("/:orderId/pay").post(protect, makepayment)
+// router.route("/:orderId/pay").post(protect, makepayment) // deprecated
 router.route("/:orderId/verify").get(verifyPayment)
 
 module.exports = router

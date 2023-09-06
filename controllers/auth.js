@@ -86,13 +86,16 @@ exports.forgotPassword = async function (req, res, next) {
       subject: "Password Reset",
       text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
         Please click on the following link, or paste this into your browser to complete the process:\n\n
-        http://${req.headers.host}/api/v1/auth/resetPassword/${token}\n\n
+        ${req.protocol}://${req.headers.host}/api/v1/auth/resetPassword/${token}\n\n
         If you did not request this, please ignore this email and your password will remain unchanged.\n`,
       html: null,
     }
     try {
       await sendEmail(options)
-      res.status(200).json({ success: true, message: "Email sent" })
+      res.status(200).json({
+        success: true,
+        message: `A link to reset your password has been sent to ${req.body.email}.`,
+      })
     } catch (error) {
       user.resetPasswordToken = undefined
       user.resetPasswordExpire = undefined

@@ -22,6 +22,8 @@ const analyticsRouter = require("./routes/analytics")
 const attributeRouter = require("./routes/attributes")
 const attributeValueRouter = require("./routes/attributeValues")
 const tagRouter = require("./routes/tags")
+const summaryRouter = require("./routes/summary")
+const reviewRouter = require("./routes/review")
 
 // Db
 const connectDB = require("./db")
@@ -81,6 +83,8 @@ app.use("/api/v1/shipping-methods", shipppingMethodRouter)
 app.use("/api/v1/attributes", attributeRouter)
 app.use("/api/v1/attribute-values", attributeValueRouter)
 app.use("/api/v1/tags", tagRouter)
+app.use("/api/v1/summary", summaryRouter)
+app.use("/api/v1/reviews", reviewRouter)
 
 // 404 error
 app.use((req, res, next) => {

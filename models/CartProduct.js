@@ -18,7 +18,7 @@ const cartProductSchema = Schema(
     },
     variant: {
       type: Schema.Types.ObjectId,
-      ref: "Variant",
+      ref: "Variation",
     },
     cart: {
       type: Schema.Types.ObjectId,

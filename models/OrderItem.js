@@ -22,6 +22,10 @@ const orderItemSchema = Schema(
       ref: "Order",
       required: [true, "order is required"],
     },
+    variant: {
+      type: Types.ObjectId,
+      ref: "Variant",
+    },
   },
   {
     toJSON: {

@@ -11,6 +11,16 @@ const variationSchema = Schema(
     sku: { type: String, required: true },
     quantity: { type: Number, required: true },
     image: { type: String },
+    inStock: {
+      type: Boolean,
+      default: true,
+      enum: [true, false],
+    },
+    sold: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
   },
   {
     toJSON: {

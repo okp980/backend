@@ -28,9 +28,9 @@ const shipppingAdressSchema = Schema(
       type: String,
       required: [true, "Address is required"],
     },
-    city: {
+    lga: {
       type: String,
-      required: [true, "City is required"],
+      required: [true, "LGA is required"],
     },
     state: {
       type: String,

@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
 const ErrorResponse = require("../util/ErrorResponse")
+const Order = require("./Order")
 
 const UserSchema = new Schema(
   {

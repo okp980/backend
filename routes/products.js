@@ -10,12 +10,17 @@ const {
   getRecommendedProducts,
   getPopularProducts,
   getTrendingProducts,
+  searchProducts,
 } = require("../controllers/products")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
 const { getProductShippingMethod } = require("../controllers/shippingMethod")
 const upload = require("../util/fileUploader")
 const router = express.Router()
+const ReviewRouter = require("./review")
+
+// re-route routes
+router.use("/:productId/reviews", ReviewRouter)
 
 router
   .route("/")
@@ -29,6 +34,7 @@ router
     ]),
     addProduct
   )
+router.route("/search/:keyword").get(searchProducts)
 router.route("/new-arrival").get(getNewArrivalProducts)
 router.route("/popular-products").get(getPopularProducts)
 router.route("/recommended").get(getRecommendedProducts)

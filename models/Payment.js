@@ -16,13 +16,20 @@ const paymentSchema = Schema(
     },
     reference: {
       type: String,
-      required: true,
+      // required: true,
       unique: true,
     },
     status: {
       type: String,
-      enum: ["processing", "success", "failed"],
-      default: "processing",
+      enum: [
+        "pending",
+        "processing",
+        "success",
+        "failed",
+        "reversal",
+        "cash-on-delivery",
+      ],
+      default: "pending",
     },
   },
   {

@@ -34,9 +34,6 @@ exports.AddToCart = async function (req, res, next) {
   const { productId, variant } = req.body
   const { cartId } = req.cookies
 
-  console.log("product id", productId)
-  console.log("varaint id", variant)
-
   try {
     let cart = null
     let variationProduct = null
@@ -46,6 +43,7 @@ exports.AddToCart = async function (req, res, next) {
       cart = await Cart.findById(cartId).populate("products")
     }
 
+    // find a variantion of product
     if (variant) {
       variationProduct = await Variation.findById(variant)
     }
@@ -87,7 +85,7 @@ exports.AddToCart = async function (req, res, next) {
           cartId,
           {
             $inc: {
-              total: product.price,
+              total: variationProduct ? variationProduct.price : product.price,
             },
           },
 
@@ -141,12 +139,18 @@ exports.updateCartCount = async function (req, res, next) {
   const cartId = req.params.cartId
 
   try {
-    let cartProduct = await CartProduct.findById(cartProductId).populate(
-      "product"
-    )
+    let cartProduct = await CartProduct.findById(cartProductId)
+      .populate("product")
+      .populate("variant")
+
     if (!cartProduct)
       return next(new ErrorResponse("Product does not exist in Cart", 404))
-    const newPrice = cartProduct.product.price * Number(count)
+    const newPrice = (
+      cartProduct?.variant?.price
+        ? Number(cartProduct.variant.price) * Number(count)
+        : cartProduct.product.price * Number(count)
+    ).toFixed(2)
+
     if (count === 0) {
       await cartProduct.deleteOne()
       cartProduct = null
@@ -161,10 +165,9 @@ exports.updateCartCount = async function (req, res, next) {
       await Cart.findByIdAndDelete(cartId, { new: true })
       cart = null // come back to this, find more appropriate way
     } else {
-      const newTotal = cart.products.reduce(
-        (prev, curr) => prev + curr.price,
-        0
-      )
+      const newTotal = cart.products
+        .reduce((prev, curr) => prev + curr.price, 0)
+        .toFixed(2)
       cart = await Cart.findByIdAndUpdate(
         cartId,
         { total: newTotal },

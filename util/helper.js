@@ -32,7 +32,7 @@ const getAdvancedResults = async (request, model, config) => {
   queryStr = JSON.parse(queryStr)
 
   // fields to remove
-  const removeFields = ["select", "sort", "page", "limit"]
+  const removeFields = ["select", "sort", "page", "limit", "search_product"]
 
   removeFields.forEach((item) => {
     if (queryStr[item]) {
@@ -44,10 +44,20 @@ const getAdvancedResults = async (request, model, config) => {
   if (config && config.hasOwnProperty("query")) {
     queryStr = { ...queryStr, ...config.query }
   }
-  query = model.find(queryStr)
 
-  // select field
+  // search product by field name
+  if (request.query.search_product) {
+    query = model.find({
+      ...queryStr,
+      ...{ name: { $regex: request.query.search_product, $options: "i" } },
+    })
+    console.log("ran search product")
+  } else {
+    query = model.find(queryStr)
+  }
+
   if (request.query.select) {
+    // select field
     const fields = request.query.select.split(",").join(" ")
     query.select(fields)
   }

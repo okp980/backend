@@ -47,7 +47,8 @@ const makepayment = async (req, res, next) => {
     const options = {
       amount: amount * 100,
       email,
-      callback_url: `${req.protocol}://${req.hostname}/api/v1/orders/${orderId}/verify`,
+      // callback_url: `${req.protocol}://${req.hostname}/api/v1/orders/${orderId}/verify`, // former
+      callback_url: `${req.protocol}://${req.headers.host}/api/v1/orders/${orderId}/verify`,
       currency: "NGN",
     }
 
@@ -58,7 +59,7 @@ const makepayment = async (req, res, next) => {
       paymentMethod,
       reference: data.data.reference,
     })
-    // update the payment field for the order
+    // update the payment field for the order // remove the payment, i've done it in create order
     await order.updateOne({ payment, status: "processing" })
 
     res.status(201).json({

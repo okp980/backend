@@ -63,6 +63,16 @@ exports.getSubCategoryProducts = async (req, res, next) => {
   try {
     const id = req.params.id
     const products = await Product.find({ sub_category: id })
+      .populate("tags")
+      .populate({
+        path: "variants",
+        populate: {
+          path: "attributeValue",
+          populate: "attribute",
+        },
+      })
+      .populate("sub_category")
+      .populate("category")
     res
       .status(200)
       .json({ success: true, count: products.length, data: products })

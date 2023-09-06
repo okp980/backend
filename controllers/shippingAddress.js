@@ -130,7 +130,7 @@ exports.updateShippingAddress = async function (req, res, next) {
     email,
     country,
     state,
-    city,
+    lga,
     address: addressFromBody,
   } = req.body
   try {
@@ -146,7 +146,7 @@ exports.updateShippingAddress = async function (req, res, next) {
         email,
         country,
         state,
-        city,
+        lga,
         address: addressFromBody,
       },
       {
