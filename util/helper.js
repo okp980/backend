@@ -3,7 +3,13 @@ const mongoose = require("mongoose")
 const path = require("path")
 
 const deleteFile = async (dir, file) => {
-  await fs.unlink(path.join(__dirname, "..", "public", dir, file))
+  const fileExists = await fs.readFile(
+    path.join(__dirname, "..", "public", dir, file)
+  )
+
+  if (fileExists) {
+    await fs.unlink(path.join(__dirname, "..", "public", dir, file))
+  }
 }
 
 const runInTransaction = async (callback) => {
@@ -51,7 +57,6 @@ const getAdvancedResults = async (request, model, config) => {
       ...queryStr,
       ...{ name: { $regex: request.query.search_product, $options: "i" } },
     })
-    console.log("ran search product")
   } else {
     query = model.find(queryStr)
   }

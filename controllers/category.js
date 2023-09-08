@@ -142,8 +142,7 @@ exports.deleteCategory = async (req, res, next) => {
       await Product.deleteMany({ category: id }, { session })
       await SubCategory.deleteMany({ category: id }, { session })
       await category.deleteOne({ session })
-      // Delete image associated with the category from the server
-      await deleteFile("uploads", categoryImage)
+      // TODO: Delete image associated with the category from the server/aws S3 bucket
     })
     res
       .status(200)

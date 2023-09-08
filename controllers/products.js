@@ -11,6 +11,9 @@ exports.addProduct = async (req, res, next) => {
   let variations = []
 
   const { tags, variants, product_type, ...body } = req.body
+  if (!req.files.gallery) {
+    return next(new ErrorResponse("please upload images to image gallery", 400))
+  }
   try {
     // send to S3
     const imageResult = await uploadToBucket(
@@ -57,6 +60,7 @@ exports.addProduct = async (req, res, next) => {
       data: product,
     })
   } catch (error) {
+    console.log(error)
     console.log("remove uploaded files")
     for (const key in req.files) {
       for (const value of req.files[key]) {

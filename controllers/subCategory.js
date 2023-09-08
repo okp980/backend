@@ -160,6 +160,7 @@ exports.deleteSubcategory = async (req, res, next) => {
       return new ErrorResponse("SubCategory not found", 404)
     }
     await category.deleteOne()
+    // TODO: Delete image associated with the category from the server/aws S3 bucket
 
     res
       .status(200)
