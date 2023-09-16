@@ -61,12 +61,12 @@ exports.addProduct = async (req, res, next) => {
     })
   } catch (error) {
     console.log(error)
-    console.log("remove uploaded files")
-    for (const key in req.files) {
-      for (const value of req.files[key]) {
-        await deleteFile("uploads", value.filename)
-      }
-    }
+    // console.log("remove uploaded files")
+    // for (const key in req.files) {
+    //   for (const value of req.files[key]) {
+    //     await deleteFile("uploads", value.filename)
+    //   }
+    // }
     next(error)
   }
 }
