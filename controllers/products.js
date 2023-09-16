@@ -21,13 +21,13 @@ exports.addProduct = async (req, res, next) => {
       req.files.image[0].filename
     )
     // delete file after upload
-    await deleteFile("uploads", req.files.image[0].filename)
+    // await deleteFile("uploads", req.files.image[0].filename)
 
     // send to S3 and delete after upload
     const galleryResult = await Promise.all(
       req.files.gallery.map(async (file) => {
         const result = await uploadToBucket(file.path, file.filename)
-        await deleteFile("uploads", file.filename)
+        // await deleteFile("uploads", file.filename)
         return result.Location
       })
     )
