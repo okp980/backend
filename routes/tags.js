@@ -7,14 +7,36 @@ const {
   getSingleTag,
 } = require("../controllers/tags")
 const { protect, authorize } = require("../middleware/auth")
+const passport = require("passport")
 
 const router = express.Router({ mergeParams: true })
 
-router.route("/").get(getTags).post(protect, authorize("admin"), createTag)
+router
+  .route("/")
+  .get(getTags)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createTag
+  )
 router
   .route("/:tagId")
-  .put(protect, authorize("admin"), updateTag)
-  .delete(protect, authorize("admin"), deleteTag)
-router.route("/:id").get(protect, authorize("admin"), getSingleTag)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateTag
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteTag
+  )
+router
+  .route("/:id")
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    getSingleTag
+  )
 
 module.exports = router

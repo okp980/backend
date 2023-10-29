@@ -7,18 +7,39 @@ const {
   getSingleShippingMethod,
   updateShippingMethod,
   deleteShippingMethod,
+  getOrderShippingCost,
 } = require("../controllers/shippingMethod")
+const passport = require("passport")
 
 const router = express.Router()
 
 router
   .route("/")
   .get(getAllShippingMethods)
-  .post(protect, authorize("admin"), createShippingMethod)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createShippingMethod
+  )
 router
   .route("/:methodId")
-  .get(protect, authorize("admin"), getSingleShippingMethod)
-  .put(protect, authorize("admin"), updateShippingMethod)
-  .delete(protect, authorize("admin"), deleteShippingMethod)
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    getSingleShippingMethod
+  )
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateShippingMethod
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteShippingMethod
+  )
+router
+  .route("/orders/cost")
+  .get(passport.authenticate("jwt", { session: false }), getOrderShippingCost)
 
 module.exports = router

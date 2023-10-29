@@ -1,6 +1,7 @@
 const ErrorResponse = require("../util/ErrorResponse")
 const jwt = require("jsonwebtoken")
 const User = require("../models/User")
+const passport = require("passport")
 
 exports.protect = async function (req, res, next) {
   try {
@@ -16,6 +17,7 @@ exports.protect = async function (req, res, next) {
   } catch (error) {
     next(error)
   }
+  // passport.authenticate("jwt", { session: false })
 }
 
 exports.authorize = function (...roles) {

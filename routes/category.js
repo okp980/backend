@@ -13,6 +13,7 @@ const tagRouter = require("./tags")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
 const upload = require("../util/fileUploader")
+const passport = require("passport")
 
 const router = express.Router()
 
@@ -23,16 +24,34 @@ router.use("/:id/tags", tagRouter)
 router
   .route("/")
   .get(getCategory)
-  .post(protect, authorize("admin"), upload.single("image"), addCategory)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    upload.single("image"),
+    addCategory
+  )
 
 router
   .route("/:id")
   .get(getSingleCategory)
-  .put(protect, authorize("admin"), updateCategory)
-  .delete(protect, authorize("admin"), deleteCategory)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateCategory
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteCategory
+  )
 router.route("/:id/products").get(getCategoryProducts)
 router
   .route("/:id/image")
-  .put(protect, authorize("admin"), ImageUpload, updateCategoryImage)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    ImageUpload,
+    updateCategoryImage
+  )
 
 module.exports = router

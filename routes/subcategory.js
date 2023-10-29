@@ -11,21 +11,40 @@ const {
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
 const upload = require("../util/fileUploader")
+const passport = require("passport")
 
 const router = express.Router({ mergeParams: true })
 
 router
   .route("/")
   .get(getSubcategory)
-  .post(protect, authorize("admin"), upload.single("image"), addSubCategory)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    upload.single("image"),
+    addSubCategory
+  )
 router
   .route("/:id")
   .get(getSingleSubcategory)
-  .put(protect, authorize("admin"), updateSubcategory)
-  .delete(protect, authorize("admin"), deleteSubcategory)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateSubcategory
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteSubcategory
+  )
 router.route("/:id/products").get(getSubCategoryProducts)
 router
   .route("/:id/image")
-  .put(protect, authorize("admin"), ImageUpload, updateSubcategoryImage)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    ImageUpload,
+    updateSubcategoryImage
+  )
 
 module.exports = router

@@ -12,6 +12,7 @@ const Product = require("../models/Product")
 const CartProduct = require("../models/CartProduct")
 const Review = require("../models/Review")
 const { statusStages } = require("../util/contants")
+const EmailService = require("../util/email")
 
 const Paystack = require("paystack-api")(
   "sk_test_29d46db07d47e0d712862b9993ecc1a5d2deb182"
@@ -36,87 +37,24 @@ exports.getOrders = async (req, res, next) => {
 // @access - Private
 exports.getUserOrders = async (req, res, next) => {
   try {
-    let query
-
-    let queryStr = JSON.stringify(req.query)
-    queryStr = queryStr.replace(
-      /\b(gt|gte|lt|lte|in)\b/g,
-      (match) => `$${match}`
-    )
-
-    // parsed query
-
-    queryStr = JSON.parse(queryStr)
-
-    // fields to remove
-    const removeFields = ["select", "sort", "page", "limit"]
-
-    removeFields.forEach((item) => {
-      if (queryStr[item]) {
-        delete queryStr[item]
-      }
+    const result = await getAdvancedResults(req, Order, {
+      populate: [
+        "shippingMethod",
+        "shippingAddress",
+        {
+          path: "items",
+          populate: [
+            { path: "product", select: "name price image" },
+            { path: "order" },
+          ],
+        },
+      ],
+      query: { user: req.user.id },
     })
 
-    query = Order.find({ user: req.user.id, ...queryStr })
-      .populate({
-        path: "items",
-        populate: { path: "product", select: "name price image" },
-      })
-      .populate("shippingMethod", "title charge")
-      .populate({
-        path: "payment",
-        populate: { path: "paymentMethod", select: "name" },
-        select: "paymentMethod",
-      })
+    //  populate: [{ path: "category", select: "name" }],
 
-    // select field
-    if (req.query.select) {
-      const fields = req.query.select.split(",").join(" ")
-      query.select(fields)
-    }
-
-    // sort by
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(",").join(" ")
-      query.sort(sortBy)
-    } else {
-      query.sort("-createdAt")
-    }
-
-    // Pagination
-    const page = parseInt(req.query.page, 10) || 1
-    const limit = parseInt(req.query.limit, 10) || 5
-    const startIndex = (page - 1) * limit
-    const endIndex = page * limit
-    const total = await Order.countDocuments()
-
-    query = query.skip(startIndex).limit(limit)
-
-    const pagination = { current: page, limit }
-
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit,
-      }
-    }
-
-    if (startIndex > 0) {
-      pagination.previous = {
-        page: page - 1,
-        limit,
-      }
-    }
-
-    const result = await query
-
-    res.status(200).json({
-      success: true,
-      count: result.length,
-
-      pagination,
-      data: result,
-    })
+    res.status(200).json(result)
   } catch (error) {
     next(error)
   }
@@ -132,7 +70,8 @@ exports.getSingleOrder = async (req, res, next) => {
         path: "items",
         populate: { path: "product", select: "name price image" },
       })
-      .populate("shippingMethod shippingAddress")
+      .populate("shippingMethod")
+      .populate("shippingAddress")
       .populate({
         path: "payment",
         populate: { path: "paymentMethod", select: "name" },
@@ -258,6 +197,7 @@ exports.createOrder = async (req, res, next) => {
         ],
         { session }
       )
+      console.log("order payment created", payment)
 
       // update the payment field for the order
       await order.updateOne({ payment: payment.id }, { session })
@@ -404,7 +344,42 @@ exports.verifyPayment = async (req, res, next) => {
       .status(200)
       .json({ message: data.message, success: true, data: data.data })
   } catch (error) {
-    console.log("EEROR", error)
+    console.log("ERROR", error)
+    next(error)
+  }
+}
+
+//@desc - Verify payment of an order
+//@route - GET api/v1/orders/:orderId/pay
+// @access - Private
+exports.payUnpaidOrders = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.orderId)
+      .populate("shippingMethod")
+      .populate("shippingAddress")
+    if (!order) return next(new ErrorResponse("Order not found", 404))
+    if (order.status !== "pending")
+      return next(new ErrorResponse("Order is not pending", 400))
+    // All is well proceed with initilizing payment
+    const options = {
+      amount: order.totalAmount * 100,
+      email: order.shippingAddress?.email,
+      // callback_url: `${req.protocol}://${req.hostname}/api/v1/orders/${order.id}/verify`, // former
+      callback_url: `${req.protocol}://${req.headers.host}/api/v1/orders/${order.id}/verify`,
+      currency: "NGN",
+    }
+
+    paystackData = await Paystack.transaction.initialize(options)
+
+    res.status(201).json({
+      success: true,
+      data: {
+        order_id: order.id,
+        authorization_url: paystackData.data.authorization_url,
+        access_code: paystackData.data.access_code,
+      },
+    })
+  } catch (error) {
     next(error)
   }
 }
@@ -414,6 +389,7 @@ exports.verifyPayment = async (req, res, next) => {
 // @access - Private
 exports.updateOrdersStatus = async (req, res, next) => {
   const { status } = req.body
+  console.log("status", status)
   const isStatusType = statusStages.some((st) => st === status)
   if (!isStatusType)
     return next(new ErrorResponse("Status type incorrect", 400))
@@ -427,6 +403,9 @@ exports.updateOrdersStatus = async (req, res, next) => {
       return next(new ErrorResponse("Order not found", 404))
     }
     // send FCM to device here and Email to user e-mail ====> implement later
+    await EmailService.sendWelcomeEmail({
+      email: "okpunorrex@gmail.com",
+    })
     res.status(200).json({ success: true, data: order })
   } catch (error) {
     next(error)
@@ -448,14 +427,7 @@ exports.orderSummary = async (req, res, next) => {
     })
     const shippedOrder = await Order.find({
       user: req.user.id,
-      status: {
-        $in: [
-          "shipment sent to china frieghtya",
-          "arrived china sorting center",
-          "shipment left china to nigeria",
-          "customs clearing at lagos nigeria",
-        ],
-      },
+      status: "out-for-delivery",
     })
     const refundedOrder = await Order.find({
       user: req.user.id,

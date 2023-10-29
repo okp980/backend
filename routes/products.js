@@ -11,6 +11,7 @@ const {
   getPopularProducts,
   getTrendingProducts,
   searchProducts,
+  getProductsVariations,
 } = require("../controllers/products")
 const { ImageUpload } = require("../middleware/fileUploadHandler")
 const { protect, authorize } = require("../middleware/auth")
@@ -18,6 +19,7 @@ const { getProductShippingMethod } = require("../controllers/shippingMethod")
 const upload = require("../util/fileUploader")
 const router = express.Router()
 const ReviewRouter = require("./review")
+const passport = require("passport")
 
 // re-route routes
 router.use("/:productId/reviews", ReviewRouter)
@@ -26,7 +28,7 @@ router
   .route("/")
   .get(getProducts)
   .post(
-    protect,
+    passport.authenticate("jwt", { session: false }),
     authorize("admin"),
     upload.fields([
       { name: "image", maxCount: 1 },
@@ -42,11 +44,25 @@ router.route("/trending").get(getTrendingProducts)
 router
   .route("/:id")
   .get(getProduct)
-  .put(protect, authorize("admin"), updateProduct)
-  .delete(protect, authorize("admin"), deleteProduct)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateProduct
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteProduct
+  )
 router.route("/:productId/shipping-methods").get(getProductShippingMethod)
+router.route("/:productId/variations").get(getProductsVariations)
 router
   .route("/:id/image")
-  .put(protect, authorize("admin"), ImageUpload, updateProductImage)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    ImageUpload,
+    updateProductImage
+  )
 
 module.exports = router

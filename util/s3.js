@@ -9,16 +9,16 @@ const s3 = new S3({
 })
 
 const uploadToBucket = async (file, key) => {
-  const fileStream = fs.createReadStream(file)
-  fileStream.on("error", (error) => {
-    console.log("error to s3 upload")
-    console.log(error)
-    throw error
-  })
+  // const fileStream = fs.createReadStream(file)
+  // fileStream.on("error", (error) => {
+  //   console.log("error to s3 upload")
+  //   console.log(error)
+  //   throw error
+  // })
 
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    Body: fileStream,
+    Body: file.buffer,
     Key: key,
   }
 

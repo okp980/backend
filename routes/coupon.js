@@ -7,17 +7,30 @@ const {
   updateCoupon,
   deleteCoupon,
 } = require("../controllers/coupon")
+const passport = require("passport")
 
 const router = express.Router()
 
 router
   .route("/")
-  .get(protect, getCoupons)
-  .post(protect, authorize("admin"), createCoupon)
+  .get(passport.authenticate("jwt", { session: false }), getCoupons)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createCoupon
+  )
 router
   .route("/:couponId")
-  .get(protect, getCoupon)
-  .put(protect, authorize("admin"), updateCoupon)
-  .delete(protect, authorize("admin"), deleteCoupon)
+  .get(passport.authenticate("jwt", { session: false }), getCoupon)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateCoupon
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteCoupon
+  )
 
 module.exports = router

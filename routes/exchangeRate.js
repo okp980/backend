@@ -1,40 +1,43 @@
 const express = require("express")
-const {
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser,
-  createUser,
-} = require("../controllers/users")
+
 const { protect, authorize } = require("../middleware/auth")
 const passport = require("passport")
+const {
+  getExchangeRates,
+  createExchangeRate,
+  updateExchangeRate,
+  deleteExchangeRate,
+  getSingleExchangeRate,
+} = require("../controllers/exchangeRate")
 
 const router = express.Router()
 
 router
   .route("/")
-  .get(getUsers)
+  .get(getExchangeRates)
   .post(
     passport.authenticate("jwt", { session: false }),
     authorize("admin"),
-    createUser
+    createExchangeRate
   )
 router
-  .route("/:userId")
-  .get(
-    passport.authenticate("jwt", { session: false }),
-    authorize("admin"),
-    getUser
-  )
+  .route("/:id")
   .put(
     passport.authenticate("jwt", { session: false }),
     authorize("admin"),
-    updateUser
+    updateExchangeRate
   )
-  .delete(
+//   .delete(
+//     passport.authenticate("jwt", { session: false }),
+//     authorize("admin"),
+//     deleteExchangeRate
+//   ) // TODO: Revisit this
+router
+  .route("/:id")
+  .get(
     passport.authenticate("jwt", { session: false }),
     authorize("admin"),
-    deleteUser
+    getSingleExchangeRate
   )
 
 module.exports = router

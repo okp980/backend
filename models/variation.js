@@ -7,7 +7,13 @@ const variationSchema = Schema(
     attributeValue: [
       { type: Schema.Types.ObjectId, ref: "AttributeValue", required: true },
     ],
-    price: { type: Number, required: true },
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
+    price: { type: Number },
+    price_in_naira: { type: Number },
     sku: { type: String, required: true },
     quantity: { type: Number, required: true },
     image: { type: String },
@@ -32,5 +38,14 @@ const variationSchema = Schema(
     timestamps: true,
   }
 )
+
+variationSchema.pre("save", async function (next) {
+  const price_CNY = await this.model("ExchangeRate").findOne({
+    currency: "CNY",
+  })
+  // Price in naira
+  this.price_in_naira = this.price * price_CNY.rate
+  next()
+})
 
 module.exports = model("Variation", variationSchema)

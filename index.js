@@ -5,6 +5,12 @@ const morgan = require("morgan")
 const fileUpload = require("express-fileupload")
 const cookieParser = require("cookie-parser")
 const cors = require("cors")
+const passport = require("passport")
+const { Strategy } = require("passport-google-oauth20")
+const JwtStrategy = require("passport-jwt").Strategy
+const LocalStrategy = require("passport-local")
+const ExtractJwt = require("passport-jwt").ExtractJwt
+const bcrypt = require("bcrypt")
 
 // Routes
 const productRouter = require("./routes/products")
@@ -22,6 +28,7 @@ const analyticsRouter = require("./routes/analytics")
 const attributeRouter = require("./routes/attributes")
 const attributeValueRouter = require("./routes/attributeValues")
 const tagRouter = require("./routes/tags")
+const exchangeRateRouter = require("./routes/exchangeRate")
 const summaryRouter = require("./routes/summary")
 const reviewRouter = require("./routes/review")
 
@@ -31,10 +38,75 @@ const connectDB = require("./db")
 const mongoose = require("mongoose")
 const errorHandler = require("./middleware/errorHandler")
 const ErrorResponse = require("./util/ErrorResponse")
+const User = require("./models/User")
 
 // initialize
 connectDB()
 dotenv.config()
+
+// Google strategy
+passport.use(
+  new Strategy(
+    {
+      clientID: process.env.OAUTH_CLIENT_ID,
+      clientSecret: process.env.OAUTH_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALBACK_URL,
+    },
+    async (accessToken, refreshToken, profile, cb) => {
+      try {
+        const user = await User.findOne({
+          google_id: profile.id,
+        })
+        if (!user) {
+          const user = await User.create({
+            google_id: profile.id,
+          })
+          return cb(null, user?.id)
+        }
+        return cb(null, user?.id)
+      } catch (error) {
+        return cb(error)
+      }
+    }
+  )
+)
+
+// Local strategy
+passport.use(
+  new LocalStrategy(async function verify(username, password, cb) {
+    try {
+      const user = await User.findOne({ email: username }).select("+password")
+      if (!user)
+        return cb(null, false, { message: "Incorrect username or password." })
+      const isMatch = await bcrypt.compare(password, user.password)
+      if (!isMatch)
+        return cb(null, false, {
+          message: "Incorrect username or password.",
+        })
+      return cb(null, user?.id)
+    } catch (error) {
+      return cb(error)
+    }
+  })
+)
+
+// jwt strategy
+const opts = {}
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken()
+opts.secretOrKey = process.env.SECRET_JWT
+passport.use(
+  new JwtStrategy(opts, async function (jwt_payload, done) {
+    console.log("jwt_payload", jwt_payload)
+    try {
+      const user = await User.findOne({ id: jwt_payload.sub })
+      if (!user)
+        return done(null, false, { message: "Incorrect username or password." })
+      return done(null, user)
+    } catch (error) {
+      done(err, false)
+    }
+  })
+)
 
 const app = express()
 const port = process.env.PORT || 4000
@@ -66,6 +138,9 @@ app.use(cookieParser())
 
 // app.use(fileUpload())
 
+// passport
+app.use(passport.initialize())
+
 // handle routes
 app.use("/api/v1/auth", AuthRouter)
 app.use("/api/v1/cart", cartRouter)
@@ -83,6 +158,7 @@ app.use("/api/v1/shipping-methods", shipppingMethodRouter)
 app.use("/api/v1/attributes", attributeRouter)
 app.use("/api/v1/attribute-values", attributeValueRouter)
 app.use("/api/v1/tags", tagRouter)
+app.use("/api/v1/exchange-rates", exchangeRateRouter)
 app.use("/api/v1/summary", summaryRouter)
 app.use("/api/v1/reviews", reviewRouter)
 

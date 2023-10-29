@@ -7,18 +7,31 @@ const {
   updatePaymentMethod,
   deletePaymentMethod,
 } = require("../controllers/paymentMethod")
+const passport = require("passport")
 
 const router = express.Router()
 
 router
   .route("/")
-  .get(protect, getPaymentMethods)
-  .post(protect, authorize("admin"), createPaymentMethod)
+  .get(passport.authenticate("jwt", { session: false }), getPaymentMethods)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createPaymentMethod
+  )
 
 router
   .route("/:methodId")
-  .get(protect, getSinglePaymentMethod)
-  .put(protect, authorize("admin"), updatePaymentMethod)
-  .delete(protect, authorize("admin"), deletePaymentMethod)
+  .get(passport.authenticate("jwt", { session: false }), getSinglePaymentMethod)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updatePaymentMethod
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deletePaymentMethod
+  )
 
 module.exports = router

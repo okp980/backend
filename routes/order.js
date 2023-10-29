@@ -10,24 +10,36 @@ const {
   deleteOrder,
   verifyPayment,
   orderSummary,
+  payUnpaidOrders,
 } = require("../controllers/order")
 const { makepayment } = require("../controllers/payment")
 const advancedResults = require("../middleware/advancedResults")
 const Order = require("../models/Order")
+const passport = require("passport")
 
 const router = express.Router()
 
-router.route("/").get(protect, getOrders).post(protect, createOrder)
-router.route("/user").get(protect, getUserOrders)
+router
+  .route("/")
+  .get(passport.authenticate("jwt", { session: false }), getOrders)
+  .post(passport.authenticate("jwt", { session: false }), createOrder)
+router
+  .route("/user")
+  .get(passport.authenticate("jwt", { session: false }), getUserOrders)
 
 router
   .route("/:orderId")
-  .get(protect, getSingleOrder)
-  .delete(protect, deleteOrder)
+  .get(passport.authenticate("jwt", { session: false }), getSingleOrder)
+  .delete(passport.authenticate("jwt", { session: false }), deleteOrder)
 router
   .route("/:orderId/status")
-  .put(protect, authorize("admin"), updateOrdersStatus)
-// router.route("/:orderId/pay").post(protect, makepayment) // deprecated
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateOrdersStatus
+  )
+// router.route("/:orderId/pay").post(passport.authenticate("jwt", { session: false }), makepayment) // deprecated
 router.route("/:orderId/verify").get(verifyPayment)
+router.route("/:orderId/pay").get(payUnpaidOrders)
 
 module.exports = router

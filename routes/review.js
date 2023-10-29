@@ -7,17 +7,30 @@ const {
   getReview,
   getReviews,
 } = require("../controllers/review")
+const passport = require("passport")
 
 const router = express.Router({ mergeParams: true })
 
 router
   .route("/")
   .get(getReviews)
-  .post(protect, authorize("admin"), createReview)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createReview
+  )
 router
   .route("/:reviewId")
-  .get(protect, getReview)
-  .put(protect, authorize("admin"), updateReview)
-  .delete(protect, authorize("admin"), deleteReview)
+  .get(passport.authenticate("jwt", { session: false }), getReview)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateReview
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteReview
+  )
 
 module.exports = router

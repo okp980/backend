@@ -8,6 +8,7 @@ const {
   deleteAttribute,
 } = require("../controllers/attributes")
 const AttributeValuesRouter = require("../routes/attributeValues")
+const passport = require("passport")
 
 const router = express.Router()
 
@@ -17,11 +18,23 @@ router.use("/:attributeId/attribute-values", AttributeValuesRouter)
 router
   .route("/")
   .get(getAttributes)
-  .post(protect, authorize("admin"), createAttribute)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createAttribute
+  )
 router
   .route("/:attributeId")
-  .get(protect, getAttribute)
-  .put(protect, authorize("admin"), updateAttribute)
-  .delete(protect, authorize("admin"), deleteAttribute)
+  .get(passport.authenticate("jwt", { session: false }), getAttribute)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateAttribute
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteAttribute
+  )
 
 module.exports = router

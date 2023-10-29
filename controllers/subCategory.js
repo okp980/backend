@@ -1,11 +1,8 @@
 const Product = require("../models/Product")
 const SubCategory = require("../models/SubCategory")
 const ErrorResponse = require("../util/ErrorResponse")
-const {
-  deleteFile,
-  runInTransaction,
-  getAdvancedResults,
-} = require("../util/helper")
+const sharp = require("sharp")
+const { runInTransaction, getAdvancedResults } = require("../util/helper")
 const uploadToBucket = require("../util/s3")
 
 //@desc -  Add SubCategory
@@ -15,9 +12,20 @@ const uploadToBucket = require("../util/s3")
 exports.addSubCategory = async (req, res, next) => {
   try {
     // send to S3
-    const imageResult = await uploadToBucket(req.file.path, req.file.filename)
-    // delete file after upload
-    await deleteFile("uploads", req.file.filename)
+    req.file.buffer = await sharp(req.file.buffer)
+      .resize(300)
+      .png({
+        compressionLevel: 9,
+        adaptiveFiltering: true,
+        force: true,
+        quality: 80,
+      })
+      .toBuffer()
+
+    const imageResult = await uploadToBucket(
+      req.file,
+      `sub-category/${req.body.name}`
+    )
     const category = await SubCategory.create({
       ...req.body,
       image: imageResult.Location,
@@ -28,7 +36,6 @@ exports.addSubCategory = async (req, res, next) => {
       data: category,
     })
   } catch (error) {
-    await deleteFile("uploads", req.file.filename)
     next(error)
   }
 }
@@ -144,7 +151,6 @@ exports.updateSubcategoryImage = async (req, res, next) => {
       data: category,
     })
   } catch (error) {
-    await deleteFile("uploads", req.image.name)
     next(error)
   }
 }

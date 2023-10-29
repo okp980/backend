@@ -1,8 +1,11 @@
+const { default: mongoose } = require("mongoose")
 const Product = require("../models/Product")
 const Variation = require("../models/variation")
 const ErrorResponse = require("../util/ErrorResponse")
-const { deleteFile, getAdvancedResults } = require("../util/helper")
+const { getAdvancedResults } = require("../util/helper")
 const uploadToBucket = require("../util/s3")
+const AttributeValue = require("../models/AttributeValue")
+const sharp = require("sharp")
 
 //@desc -  Add Product
 //@route - POST /api/v1/products
@@ -16,18 +19,38 @@ exports.addProduct = async (req, res, next) => {
   }
   try {
     // send to S3
+    console.log(req.files)
+    req.files.image[0].buffer = await sharp(req.files.image[0].buffer)
+      .resize(500)
+      .png({
+        compressionLevel: 9,
+        adaptiveFiltering: true,
+        force: true,
+        quality: 80,
+      })
+      .toBuffer()
     const imageResult = await uploadToBucket(
-      req.files.image[0].path,
-      req.files.image[0].filename
+      req.files.image[0],
+      `product-${req.body.name}`
     )
-    // delete file after upload
-    // await deleteFile("uploads", req.files.image[0].filename)
 
-    // send to S3 and delete after upload
+    // send to S3
     const galleryResult = await Promise.all(
-      req.files.gallery.map(async (file) => {
-        const result = await uploadToBucket(file.path, file.filename)
-        // await deleteFile("uploads", file.filename)
+      req.files.gallery.map(async (file, index) => {
+        let new_file = file
+        new_file.buffer = await sharp(file.buffer)
+          .resize(500)
+          .png({
+            compressionLevel: 9,
+            adaptiveFiltering: true,
+            force: true,
+            quality: 80,
+          })
+          .toBuffer()
+        const result = await uploadToBucket(
+          new_file,
+          `product-${req.body.name}-${index + 1}`
+        )
         return result.Location
       })
     )
@@ -36,7 +59,8 @@ exports.addProduct = async (req, res, next) => {
       variations = await Promise.all(
         JSON.parse(variants).map(async (variation) => {
           const attr = variation.attributeValues.map((a) => a.value)
-          return await Variation.create({
+          // new variations without product field, to be attached after creating product
+          return await new Variation({
             ...variation,
             attributeValue: attr,
           })
@@ -53,7 +77,19 @@ exports.addProduct = async (req, res, next) => {
       variants: variations.map((v) => v.id),
     }
 
+    // create product
     const product = await Product.create(productValues)
+
+    // attach product id to variations and SAVE
+    const saved = await Promise.all(
+      variations.map(async (variation) => {
+        variation.product = product._id
+
+        return await variation.save()
+      })
+    )
+
+    console.log(saved)
     res.status(201).json({
       success: true,
       message: "Product created successfully",
@@ -61,12 +97,7 @@ exports.addProduct = async (req, res, next) => {
     })
   } catch (error) {
     console.log(error)
-    // console.log("remove uploaded files")
-    // for (const key in req.files) {
-    //   for (const value of req.files[key]) {
-    //     await deleteFile("uploads", value.filename)
-    //   }
-    // }
+
     next(error)
   }
 }
@@ -98,6 +129,34 @@ exports.getProducts = async (req, res, next) => {
     next(error)
   }
 }
+//@desc -  get all products
+//@route - GET /api/v1/products/:productId/variations
+//@access - Public
+exports.getProductsVariations = async (req, res, next) => {
+  try {
+    const variations = await Variation.find({
+      product: req.params.productId,
+    }).populate({ path: "attributeValue", populate: "attribute" })
+    // const agg = await Variation.aggregate([
+    //   {
+    //     $match: {
+    //       product: new mongoose.Types.ObjectId(req.params.productId),
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: AttributeValue.collection.name,
+    //       localField: "attributeValue",
+    //       foreignField: "_id",
+    //       as: "attributeValue",
+    //     },
+    //   },
+    // ])
+    res.status(200).json({ success: true, data: variations })
+  } catch (error) {
+    next(error)
+  }
+}
 
 //@desc -  get New Arrival products
 //@route - GET /api/v1/products/new-arrival
@@ -105,7 +164,18 @@ exports.getProducts = async (req, res, next) => {
 exports.getNewArrivalProducts = async (req, res, next) => {
   try {
     const result = await getAdvancedResults(req, Product, {
-      populate: ["category", "sub_category"],
+      populate: [
+        "category",
+        "sub_category",
+        "tags",
+        {
+          path: "variants",
+          populate: {
+            path: "attributeValue",
+            populate: "attribute",
+          },
+        },
+      ],
     })
 
     res.status(200).json({ success: true, count: result.length, data: result })
@@ -119,7 +189,18 @@ exports.getNewArrivalProducts = async (req, res, next) => {
 exports.getPopularProducts = async (req, res, next) => {
   try {
     const newProducts = await getAdvancedResults(req, Product, {
-      populate: ["categoy", "sub_category"],
+      populate: [
+        "category",
+        "sub_category",
+        "tags",
+        {
+          path: "variants",
+          populate: {
+            path: "attributeValue",
+            populate: "attribute",
+          },
+        },
+      ],
     })
     res
       .status(200)
@@ -133,7 +214,20 @@ exports.getPopularProducts = async (req, res, next) => {
 //@access - Public
 exports.getTrendingProducts = async (req, res, next) => {
   try {
-    const newProducts = await getAdvancedResults(req, Product)
+    const newProducts = await getAdvancedResults(req, Product, {
+      populate: [
+        "category",
+        "sub_category",
+        "tags",
+        {
+          path: "variants",
+          populate: {
+            path: "attributeValue",
+            populate: "attribute",
+          },
+        },
+      ],
+    })
     res
       .status(200)
       .json({ success: true, count: newProducts.length, data: newProducts })
@@ -146,7 +240,20 @@ exports.getTrendingProducts = async (req, res, next) => {
 //@access - Public
 exports.getRecommendedProducts = async (req, res, next) => {
   try {
-    const newProducts = await getAdvancedResults(req, Product)
+    const newProducts = await getAdvancedResults(req, Product, {
+      populate: [
+        "category",
+        "sub_category",
+        "tags",
+        {
+          path: "variants",
+          populate: {
+            path: "attributeValue",
+            populate: "attribute",
+          },
+        },
+      ],
+    })
     res
       .status(200)
       .json({ success: true, count: newProducts.length, data: newProducts })
@@ -264,8 +371,6 @@ exports.deleteProduct = async (req, res, next) => {
     }
     const productImage = product.image
     await Product.findByIdAndDelete(req.params.id)
-    // Delete image associated with the product from the server
-    // await deleteFile("uploads", productImage)
 
     res
       .status(200)

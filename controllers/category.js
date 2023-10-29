@@ -1,12 +1,9 @@
+const sharp = require("sharp")
 const Category = require("../models/Category")
 const Product = require("../models/Product")
 const SubCategory = require("../models/SubCategory")
 const ErrorResponse = require("../util/ErrorResponse")
-const {
-  deleteFile,
-  runInTransaction,
-  getAdvancedResults,
-} = require("../util/helper")
+const { runInTransaction, getAdvancedResults } = require("../util/helper")
 const uploadToBucket = require("../util/s3")
 
 //@desc -  Add Category
@@ -15,12 +12,21 @@ const uploadToBucket = require("../util/s3")
 exports.addCategory = async (req, res, next) => {
   try {
     // send to S3
-    const imageResult = await uploadToBucket(req.file.path, req.file.filename)
-    // delete file after upload
-    await deleteFile("uploads", req.file.filename)
+    req.file.buffer = await sharp(req.file.buffer)
+      .resize(300)
+      .png({
+        compressionLevel: 9,
+        adaptiveFiltering: true,
+        force: true,
+        quality: 80,
+      })
+      .toBuffer()
+    const slug = Category.getSlug(req.body.name)
+    const imageResult = await uploadToBucket(req.file, `category/${slug}`)
 
     const category = await Category.create({
       ...req.body,
+      slug,
       image: imageResult.Location,
     })
 
@@ -30,7 +36,6 @@ exports.addCategory = async (req, res, next) => {
       data: category,
     })
   } catch (error) {
-    await deleteFile("uploads", req.file.filename)
     next(error)
   }
 }

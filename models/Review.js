@@ -13,7 +13,7 @@ const reviewSchema = Schema(
     comment: {
       type: String,
       required: true,
-      maxLength: [100, "Comment must be at least 50 characters"],
+      maxLength: [100, "Comment must be at least 100 characters"],
     },
     user: {
       type: Schema.Types.ObjectId,

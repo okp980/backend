@@ -11,23 +11,43 @@ const {
   getUserDefaultShippingAddress,
   updateUserDefaultShippingAddress,
 } = require("../controllers/shippingAddress")
+const passport = require("passport")
 
 const router = express.Router()
 
 router
   .route("/")
-  .get(protect, getAllShippingAddress)
-  .post(protect, createShippingAddress)
+  .get(passport.authenticate("jwt", { session: false }), getAllShippingAddress)
+  .post(passport.authenticate("jwt", { session: false }), createShippingAddress)
 
-router.route("/user").get(protect, getAllUserShippingAddress)
-router.route("/user/default").get(protect, getUserDefaultShippingAddress)
+router
+  .route("/user")
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    getAllUserShippingAddress
+  )
+router
+  .route("/user/default")
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    getUserDefaultShippingAddress
+  )
 router
   .route("/:addressId")
-  .get(protect, getSingleShippingAddress)
-  .put(protect, updateShippingAddress)
-  .delete(protect, deleteShippingAddress)
+  .get(
+    passport.authenticate("jwt", { session: false }),
+    getSingleShippingAddress
+  )
+  .put(passport.authenticate("jwt", { session: false }), updateShippingAddress)
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    deleteShippingAddress
+  )
 router
   .route("/:addressId/default")
-  .put(protect, updateUserDefaultShippingAddress)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    updateUserDefaultShippingAddress
+  )
 
 module.exports = router

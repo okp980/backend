@@ -28,7 +28,7 @@ exports.getCart = async function (req, res, next) {
 }
 
 //@desc - add to Cart
-//@route - POST api/v1/cart/
+//@route - POST api/v1/cart
 // @access - Private
 exports.AddToCart = async function (req, res, next) {
   const { productId, variant } = req.body
@@ -51,13 +51,17 @@ exports.AddToCart = async function (req, res, next) {
     if (!cart) {
       const cartProduct = await new CartProduct({
         product: productId,
-        price: variationProduct ? variationProduct.price : product.price,
+        price: variationProduct
+          ? variationProduct.price_in_naira
+          : product.price_in_naira,
         variant,
       })
 
       cart = await Cart.create({
         products: [cartProduct._id],
-        total: variationProduct ? variationProduct.price : product.price,
+        total: variationProduct
+          ? variationProduct.price_in_naira
+          : product.price_in_naira,
       })
       cartProduct.cart = cart._id
       await cartProduct.save()
@@ -74,7 +78,9 @@ exports.AddToCart = async function (req, res, next) {
           {
             $inc: {
               count: 1,
-              price: variationProduct ? variationProduct.price : product.price,
+              price: variationProduct
+                ? variationProduct.price_in_naira
+                : product.price_in_naira,
             },
           },
           { new: true }
@@ -85,7 +91,9 @@ exports.AddToCart = async function (req, res, next) {
           cartId,
           {
             $inc: {
-              total: variationProduct ? variationProduct.price : product.price,
+              total: variationProduct
+                ? variationProduct.price_in_naira
+                : product.price_in_naira,
             },
           },
 
@@ -94,7 +102,9 @@ exports.AddToCart = async function (req, res, next) {
       } else {
         const newCartProduct = await CartProduct.create({
           product: productId,
-          price: variationProduct ? variationProduct.price : product.price,
+          price: variationProduct
+            ? variationProduct.price_in_naira
+            : product.price_in_naira,
           cart: cartId,
           variant,
         })
@@ -107,7 +117,9 @@ exports.AddToCart = async function (req, res, next) {
               products: newCartProduct,
             },
             $inc: {
-              total: variationProduct ? variationProduct.price : product.price,
+              total: variationProduct
+                ? variationProduct.price_in_naira
+                : product.price_in_naira,
             },
           },
 
@@ -146,9 +158,9 @@ exports.updateCartCount = async function (req, res, next) {
     if (!cartProduct)
       return next(new ErrorResponse("Product does not exist in Cart", 404))
     const newPrice = (
-      cartProduct?.variant?.price
-        ? Number(cartProduct.variant.price) * Number(count)
-        : cartProduct.product.price * Number(count)
+      cartProduct?.variant?.price_in_naira
+        ? Number(cartProduct.variant.price_in_naira) * Number(count)
+        : cartProduct.product.price_in_naira * Number(count)
     ).toFixed(2)
 
     if (count === 0) {

@@ -4,6 +4,7 @@ const Product = require("../models/Product")
 const ShippingMethod = require("../models/ShippingMethod")
 const ErrorResponse = require("../util/ErrorResponse")
 const { getAdvancedResults } = require("../util/helper")
+const Cart = require("../models/Cart")
 
 //@desc - Get all shipping methods
 //@route - GET api/v1/shipping-methods
@@ -12,6 +13,41 @@ exports.getAllShippingMethods = async function (req, res, next) {
   try {
     const results = await getAdvancedResults(req, ShippingMethod)
     res.status(200).json(results)
+  } catch (error) {
+    next(error)
+  }
+}
+
+//@desc - Get cost for shipping methods in order
+//@route - GET api/v1/shipping-methods/orders/costs
+// @access - Private
+exports.getOrderShippingCost = async function (req, res, next) {
+  const { cartId } = req.cookies
+  try {
+    const cart = await Cart.findById(cartId).populate({
+      path: "products",
+      populate: {
+        path: "product",
+        select: "name weight",
+        populate: { path: "sub_category", select: "name" },
+      },
+    })
+    if (!cart) return next(new ErrorResponse("No Items in cart", 400))
+
+    const shippingMethods = await ShippingMethod.find().lean()
+
+    const calculatedShippings = shippingMethods.map((shipping_item) => {
+      const totalWeight = cart.products.reduce((acc, item) => {
+        return acc + item.product.weight
+      }, 0)
+
+      return {
+        ...shipping_item,
+        charge: shipping_item.charge * totalWeight,
+      }
+    })
+
+    res.status(200).json({ success: true, data: calculatedShippings })
   } catch (error) {
     next(error)
   }
@@ -44,9 +80,9 @@ exports.getProductShippingMethod = async function (req, res, next) {
       const currentDate = new Date()
       const newDate = addDays(currentDate, duration)
       return `Estimated delivery time from ${format(
-        currentDate,
+        newDate,
         "dd MMM yyyy"
-      )} to ${format(newDate, "dd MMM yyyy")}`
+      )} to ${format(addDays(newDate, 5), "dd MMM yyyy")}`
     }
 
     const productMethods = methods.map((method) => ({

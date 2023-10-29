@@ -1,0 +1,21 @@
+{{#> layout title="Verify your email addres" }}
+  <table role="presentation">
+    <tr>
+      <td>
+        <p style="margin:0 0 20px 0">
+          <span>Hi {{ name }}</span>,<br><br>
+          We're excited to have you onboard, but first you need to verify your email address. Use the otp code
+          below to verify your account.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px 0 0;">
+        <div
+          style="border: 1px solid #ccc; padding: 12px 30px; font-size: 24px; border-radius: 999px; display: inline-block;letter-spacing: 5px"
+        >{{ otp }}</div>
+        <p style="margin-top: 20px">Code expires in 10 minutes</p>
+      </td>
+    </tr>
+  </table>
+{{/ layout }}

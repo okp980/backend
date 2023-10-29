@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 const slugify = require("slugify")
+const Variation = require("./variation")
 const { Schema } = mongoose
 
 const productSchema = new Schema(
@@ -20,13 +21,19 @@ const productSchema = new Schema(
     description: {
       type: String,
       required: [true, "Description of product is required"],
-      maxLength: [2000, "Maximum length is 2000 characters"],
+      maxLength: [300, "Maximum length is 300 characters"],
     },
+
     price: {
       type: Number,
       // required: [true, "Price of product is required"],
     },
+    // TODO: remove this
     oldPrice: {
+      type: Number,
+    },
+
+    price_in_naira: {
       type: Number,
     },
     image: {
@@ -98,8 +105,15 @@ const productSchema = new Schema(
 
 productSchema.pre("save", async function (next) {
   const subCat = await this.model("SubCategory").findById(this.sub_category)
+  // Category
   this.category = subCat.category
+  // Slug
   this.slug = slugify(this.name, { lower: true })
+  const price_CNY = await this.model("ExchangeRate").findOne({
+    currency: "CNY",
+  })
+  this.price_in_naira = this.price * price_CNY.rate
+
   next()
 })
 
@@ -120,6 +134,13 @@ productSchema.virtual("total_quantity").get(function () {
     return 20
   }
   return this.quantity
+})
+
+productSchema.virtual("grouped_attributes").get(function () {
+  if (this.product_type === "simple") {
+    return {}
+  }
+  return { colors: [{ value: "red", variation_id: 1 }] }
 })
 
 module.exports = mongoose.model("Product", productSchema)

@@ -7,16 +7,29 @@ const {
   updateAttributeValue,
   deleteAttributeValue,
 } = require("../controllers/attributeValues")
+const passport = require("passport")
 
 const router = express.Router({ mergeParams: true })
 
 router
   .route("/")
-  .get(protect, getAttributeValues)
-  .post(protect, authorize("admin"), createAttributeValue)
+  .get(passport.authenticate("jwt", { session: false }), getAttributeValues)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    createAttributeValue
+  )
 router
   .route("/:id")
-  .put(protect, authorize("admin"), updateAttributeValue)
-  .delete(protect, authorize("admin"), deleteAttributeValue)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    updateAttributeValue
+  )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    authorize("admin"),
+    deleteAttributeValue
+  )
 
 module.exports = router

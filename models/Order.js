@@ -25,13 +25,11 @@ const orderSchema = Schema(
       type: Schema.Types.ObjectId,
       ref: "Payment",
     },
-    shippingAddress: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "ShippingAddress",
-        required: true,
-      },
-    ],
+    shippingAddress: {
+      type: Schema.Types.ObjectId,
+      ref: "ShippingAddress",
+      required: true,
+    },
     shippingMethod: {
       type: Schema.Types.ObjectId,
       ref: "ShippingMethod",

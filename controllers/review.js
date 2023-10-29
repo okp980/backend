@@ -38,8 +38,8 @@ exports.getReviews = async function (req, res, next) {
     }
     res.status(200).json({
       success: true,
-      totalReviews: agg[0]?.sum ? agg[0]?.sum : undefined,
-      averageRating: agg[0]?.averageRating ? agg[0]?.averageRating : undefined,
+      totalReviews: agg[0]?.sum ? agg[0]?.sum : 0,
+      averageRating: agg[0]?.averageRating ? agg[0]?.averageRating : 0,
       count: reviews.length,
       data: reviews,
     })

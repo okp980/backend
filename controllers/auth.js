@@ -4,6 +4,7 @@ const sendEmail = require("../util/nodemailer")
 const crypto = require("crypto")
 const bcrypt = require("bcrypt")
 const Cart = require("../models/Cart")
+const EmailService = require("../util/email")
 
 //@desc - register users
 //@route - POST api/v1/auth/register
@@ -12,6 +13,9 @@ exports.register = async function (req, res, next) {
   try {
     const user = await User.create(req.body)
     const token = user.generateToken()
+    await EmailService.sendWelcomeEmail({
+      email: req.body.email,
+    })
     res.status(201).json({ success: true, token })
   } catch (error) {
     next(error)
@@ -81,17 +85,12 @@ exports.forgotPassword = async function (req, res, next) {
     if (!user) return next(new ErrorResponse("User not found", 404))
     const token = user.generateResetToken()
     await user.save({ validateBeforeSave: false })
-    const options = {
-      email: req.body.email,
-      subject: "Password Reset",
-      text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
-        Please click on the following link, or paste this into your browser to complete the process:\n\n
-        ${req.protocol}://${req.headers.host}/api/v1/auth/resetPassword/${token}\n\n
-        If you did not request this, please ignore this email and your password will remain unchanged.\n`,
-      html: null,
-    }
     try {
-      await sendEmail(options)
+      // await sendEmail(options)
+      await EmailService.forgotPassword({
+        email: req.body.email,
+        link: `${req.protocol}://${req.headers.host}/api/v1/auth/resetPassword/${token}`,
+      })
       res.status(200).json({
         success: true,
         message: `A link to reset your password has been sent to ${req.body.email}.`,
