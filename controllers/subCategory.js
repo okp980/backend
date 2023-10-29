@@ -21,13 +21,11 @@ exports.addSubCategory = async (req, res, next) => {
         quality: 80,
       })
       .toBuffer()
-
-    const imageResult = await uploadToBucket(
-      req.file,
-      `sub-category/${req.body.name}`
-    )
+    const slug = SubCategory.getSlug(req.body.name)
+    const imageResult = await uploadToBucket(req.file, `sub-category/${slug}`)
     const category = await SubCategory.create({
       ...req.body,
+      slug,
       image: imageResult.Location,
     })
     res.status(201).json({

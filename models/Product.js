@@ -10,7 +10,7 @@ const productSchema = new Schema(
       unique: true,
       trim: true,
       required: [true, "Name of product is required"],
-      maxLength: [50, "Maximum length is 50 characters"],
+      maxLength: [80, "Maximum length is 80 characters"],
     },
     slug: {
       type: String,
@@ -21,7 +21,7 @@ const productSchema = new Schema(
     description: {
       type: String,
       required: [true, "Description of product is required"],
-      maxLength: [300, "Maximum length is 300 characters"],
+      maxLength: [400, "Maximum length is 400 characters"],
     },
 
     price: {

@@ -32,7 +32,7 @@ const categorySchema = Schema(
   }
 )
 
-categorySchema.statics.getSlug = function search(name) {
+categorySchema.statics.getSlug = function (name) {
   return slugify(name, { lower: true })
 }
 

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const { default: slugify } = require("slugify")
 
 const { Schema, model } = mongoose
 
@@ -9,6 +10,10 @@ const subCategorySchema = Schema(
       required: [true, "Name of product is required"],
       maxLength: [30, "Maximum length is 30 characters"],
       unique: true,
+    },
+    slug: {
+      type: String,
+      required: true,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,5 +31,9 @@ const subCategorySchema = Schema(
     timestamps: true,
   }
 )
+
+subCategorySchema.statics.getSlug = function (name) {
+  return slugify(name, { lower: true })
+}
 
 module.exports = model("SubCategory", subCategorySchema)
