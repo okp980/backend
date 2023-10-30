@@ -1,0 +1,20 @@
+{{#> layout title="Order Placement" }}
+  <table role="presentation">
+    <tr>
+      <td>
+        <p style="margin:0">
+            We are thrilled to inform you that your recent order has been successfully placed and is now in the process of being prepared for delivery. 
+            <br/><br/>
+            Thank you for choosing Zuraaya as your trusted supplier. Below are the details of your order:
+            <br/><br/>
+            Order Number: {{ order._id }}<br/>
+            {{!-- Order Date: [Order Date]<br/> --}}
+            Expected Delivery In: {{ order.shippingMethod.duration }} days.<br/><br/>
+
+            Shipping Address:
+            {{ order.shippingAddress.address }}, {{ order.shippingAddress.state }}, {{ order.shippingAddress.country }}.
+            <br/><br/>
+      </td>
+    </tr>
+  </table>
+{{/ layout }}

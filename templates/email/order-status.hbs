@@ -1,0 +1,17 @@
+{{#> layout title="Order Status" }}
+  <table role="presentation">
+    <tr>
+      <td>
+        <p style="margin:0">
+            We hope this email finds you well. We are writing to provide you with an update on the status of your recent order with Zuraaya. 
+            <br/><br/>
+            Your order details are as follows:
+            <br/><br/>
+            Order Number: {{ order._id }}<br/>
+            {{!-- Order Date: [Order Date]<br/> --}}
+            Order Date: {{ order.createdAt }}<br/><br/>
+            Order Status: {{ order.status }}<br/><br/>
+      </td>
+    </tr>
+  </table>
+{{/ layout }}

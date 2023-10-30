@@ -54,6 +54,40 @@ const EmailService = {
     }
     await AWS_SES.sendEmail(command).promise()
   },
+  async placeOrder({ order }) {
+    const html = getEmailHtml({
+      template: "place-order.hbs",
+      args: { order },
+    })
+    const command = {
+      Destination: { ToAddresses: [order?.user?.email] },
+      Source: process.env.AWS_SES_SENDER,
+      Message: {
+        Subject: { Data: "Confirmation of Your Order" },
+        Body: {
+          Html: { Data: html },
+        },
+      },
+    }
+    await AWS_SES.sendEmail(command).promise()
+  },
+  async orderStatus({ order }) {
+    const html = getEmailHtml({
+      template: "order-status.hbs",
+      args: { order },
+    })
+    const command = {
+      Destination: { ToAddresses: [order?.user?.email] },
+      Source: process.env.AWS_SES_SENDER,
+      Message: {
+        Subject: { Data: "Status of Your Order" },
+        Body: {
+          Html: { Data: html },
+        },
+      },
+    }
+    await AWS_SES.sendEmail(command).promise()
+  },
   async sendVerificationEmail({ email, name, otp }) {
     const html = getEmailHtml({
       template: "email-verification.hbs",

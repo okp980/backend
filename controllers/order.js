@@ -101,7 +101,10 @@ exports.createOrder = async (req, res, next) => {
     const session = await mongoose.startSession()
 
     await session.withTransaction(async () => {
-      const cart = await Cart.findById(cartId).populate("products")
+      const cart = await Cart.findById(cartId).populate({
+        path: "products",
+        populate: "product",
+      })
       if (!cart) return next(new ErrorResponse("No Cart was found", 404))
       cart.user = req.user.id
       await cart.save({ session })
@@ -112,8 +115,14 @@ exports.createOrder = async (req, res, next) => {
       let totalAmount = cart?.totalAfterDiscount
         ? cart?.totalAfterDiscount
         : cart.total
+
+      // sum total of all the product weight
+      const totalProductWeight = cart.products.reduce(
+        (sum, item) => sum + item.product.weight,
+        0
+      )
       // Add shipping method charge to total
-      totalAmount += shippingMethod.charge
+      totalAmount += shippingMethod.charge * totalProductWeight
 
       const newOrder = {
         user: req.user.id,
@@ -154,7 +163,8 @@ exports.createOrder = async (req, res, next) => {
       // get order inordr to get shipping email
       const shippingAddress = await ShippingAddress.findById(shippingAddressId)
 
-      const email = shippingAddress.email
+      //const email = shippingAddress.email //TODO: probably change to req.user.email
+      const email = req.user.email //TODO: probably change to req.user.email
       const amount = order.totalAmount
 
       // COME BACK TO THIS PRODUCT CAN BE SIMPLE OR VARIABLE SO QTY SHOULD BE ................
@@ -340,6 +350,21 @@ exports.verifyPayment = async (req, res, next) => {
 
     // end session
     session.endSession()
+    //get the order with populated fields
+
+    const populatedOrder = await Order.findById(req.params.orderId)
+      .populate([
+        "user",
+        "shippingAddress",
+        "shippingMethod",
+        {
+          path: "items",
+          populate: { path: "product" },
+        },
+      ])
+      .lean()
+    // console.log("populatedOrder", populatedOrder)
+    await EmailService.placeOrder({ order: populatedOrder })
     res
       .status(200)
       .json({ message: data.message, success: true, data: data.data })
@@ -399,12 +424,22 @@ exports.updateOrdersStatus = async (req, res, next) => {
       { status },
       { new: true }
     )
+      .populate([
+        "user",
+        "shippingAddress",
+        "shippingMethod",
+        {
+          path: "items",
+          populate: { path: "product" },
+        },
+      ])
+      .lean()
     if (!order) {
       return next(new ErrorResponse("Order not found", 404))
     }
     // send FCM to device here and Email to user e-mail ====> implement later
-    await EmailService.sendWelcomeEmail({
-      email: "okpunorrex@gmail.com",
+    await EmailService.orderStatus({
+      order,
     })
     res.status(200).json({ success: true, data: order })
   } catch (error) {
