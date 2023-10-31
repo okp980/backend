@@ -55,11 +55,12 @@ passport.use(
     async (accessToken, refreshToken, profile, cb) => {
       try {
         const user = await User.findOne({
-          google_id: profile.id,
+          email: profile.emails[0].value,
         })
         if (!user) {
           const user = await User.create({
-            google_id: profile.id,
+            source: "google",
+            email: profile.emails[0].value,
           })
           return cb(null, user?.id)
         }

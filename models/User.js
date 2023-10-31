@@ -9,7 +9,7 @@ const UserSchema = new Schema(
   {
     email: {
       type: String,
-      // required: [true, "Email is required"],
+      required: [true, "Email is required"],
       unique: true,
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
@@ -25,7 +25,7 @@ const UserSchema = new Schema(
     profile: { type: Schema.Types.ObjectId, ref: "Profile", default: null },
     verified_email: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
-    google_id: String,
+    source: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     role: {
